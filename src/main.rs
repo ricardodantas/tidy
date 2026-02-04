@@ -53,6 +53,84 @@ enum Commands {
     Status,
 }
 
+/// Show daemon status
+#[cfg(unix)]
+fn show_daemon_status() {
+    let pid_file = dirs::runtime_dir()
+        .or_else(dirs::state_dir)
+        .unwrap_or_else(|| PathBuf::from("/tmp"))
+        .join("hazelnutd.pid");
+
+    let log_file = dirs::state_dir()
+        .or_else(dirs::data_local_dir)
+        .unwrap_or_else(|| PathBuf::from("/tmp"))
+        .join("hazelnut")
+        .join("hazelnutd.log");
+
+    let (running, pid) = if let Ok(pid_str) = std::fs::read_to_string(&pid_file) {
+        if let Ok(pid) = pid_str.trim().parse::<i32>() {
+            if unsafe { libc::kill(pid, 0) == 0 } {
+                (true, Some(pid as u32))
+            } else {
+                (false, None)
+            }
+        } else {
+            (false, None)
+        }
+    } else {
+        (false, None)
+    };
+
+    if running {
+        let pid = pid.unwrap();
+        println!("🌰 Hazelnut daemon is running");
+        println!("   PID: {}", pid);
+        println!("   PID file: {}", pid_file.display());
+        println!("   Log file: {}", log_file.display());
+
+        // Try to get process uptime on Linux
+        #[cfg(target_os = "linux")]
+        {
+            if let Ok(stat) = std::fs::read_to_string(format!("/proc/{}/stat", pid)) {
+                let parts: Vec<&str> = stat.split_whitespace().collect();
+                if parts.len() > 21 {
+                    if let Ok(start_ticks) = parts[21].parse::<u64>() {
+                        if let Ok(uptime_str) = std::fs::read_to_string("/proc/uptime") {
+                            if let Some(uptime_secs) = uptime_str.split_whitespace().next() {
+                                if let Ok(uptime) = uptime_secs.parse::<f64>() {
+                                    let clock_ticks: u64 =
+                                        unsafe { libc::sysconf(libc::_SC_CLK_TCK) as u64 };
+                                    let start_secs = start_ticks / clock_ticks;
+                                    let running_secs = uptime as u64 - start_secs;
+
+                                    let hours = running_secs / 3600;
+                                    let mins = (running_secs % 3600) / 60;
+                                    let secs = running_secs % 60;
+
+                                    if hours > 0 {
+                                        println!("   Uptime: {}h {}m {}s", hours, mins, secs);
+                                    } else if mins > 0 {
+                                        println!("   Uptime: {}m {}s", mins, secs);
+                                    } else {
+                                        println!("   Uptime: {}s", secs);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        println!("🌰 Hazelnut daemon is not running");
+    }
+}
+
+#[cfg(not(unix))]
+fn show_daemon_status() {
+    println!("🌰 Daemon status is only available on Unix systems");
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -123,8 +201,7 @@ async fn main() -> Result<()> {
             }
         }
         Some(Commands::Status) => {
-            // TODO: Connect to daemon and get status
-            println!("Daemon status: not implemented yet");
+            show_daemon_status();
         }
     }
 
