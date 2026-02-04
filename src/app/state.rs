@@ -220,7 +220,7 @@ impl AppState {
         };
 
         // Add welcome log entries
-        state.log(LogLevel::Info, "🧹 Hazelnut started");
+        state.log(LogLevel::Info, "🌰 Hazelnut started");
         state.log(
             LogLevel::Info,
             format!(
