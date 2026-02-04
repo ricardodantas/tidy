@@ -1081,9 +1081,12 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
         return;
     };
 
-    // Calculate popup size - smaller than rule editor
-    let popup_width = 60u16.min(area.width.saturating_sub(4));
-    let popup_height = 12u16.min(area.height.saturating_sub(4));
+    // Calculate popup size - needs more height for rules list
+    let rules_count = editor.available_rules.len();
+    let base_height = 10u16; // Path, Recursive, help, margins
+    let rules_height = (rules_count as u16).min(6).max(2); // Show up to 6 rules
+    let popup_height = (base_height + rules_height).min(area.height.saturating_sub(4));
+    let popup_width = 65u16.min(area.width.saturating_sub(4));
 
     let popup_area = Rect {
         x: (area.width - popup_width) / 2,
@@ -1115,12 +1118,12 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
     let cursor = |f: WatchEditorField| if editor.field == f { "▸" } else { " " };
 
     let title = if state.mode == Mode::EditWatch {
-        format!(" ✏ Edit Watch ")
+        " ✏ Edit Watch ".to_string()
     } else {
         " ✚ New Watch ".to_string()
     };
 
-    let content = vec![
+    let mut content = vec![
         Line::from(""),
         Line::from(vec![
             Span::styled(format!(" {} ", cursor(WatchEditorField::Path)), field_style(WatchEditorField::Path)),
@@ -1133,13 +1136,50 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
             Span::styled("Recursive: ", label_style(WatchEditorField::Recursive)),
             Span::styled(if editor.recursive { "✓ Yes" } else { "✗ No" }, field_style(WatchEditorField::Recursive)),
         ]),
-        Line::from(""),
-        // Contextual help line
         Line::from(vec![
-            Span::styled("  💡 ", colors.text_dim()),
-            Span::styled(watch_field_help(editor.field), colors.text_muted().add_modifier(Modifier::ITALIC)),
+            Span::styled(format!(" {} ", cursor(WatchEditorField::Rules)), field_style(WatchEditorField::Rules)),
+            Span::styled("Rules:     ", label_style(WatchEditorField::Rules)),
+            Span::styled(
+                if editor.rules_filter.is_empty() {
+                    "(all rules)".to_string()
+                } else {
+                    format!("{} selected", editor.rules_filter.len())
+                },
+                field_style(WatchEditorField::Rules),
+            ),
         ]),
     ];
+
+    // Add rules list when Rules field is active
+    if editor.field == WatchEditorField::Rules && !editor.available_rules.is_empty() {
+        for (i, rule_name) in editor.available_rules.iter().enumerate() {
+            let is_selected = editor.is_rule_selected(rule_name);
+            let is_cursor = i == editor.rules_cursor;
+            
+            let checkbox = if is_selected { "☑" } else { "☐" };
+            let prefix = if is_cursor { " ▸ " } else { "   " };
+            
+            let rule_style = if is_cursor {
+                colors.selected().add_modifier(Modifier::BOLD)
+            } else if is_selected {
+                colors.text_primary()
+            } else {
+                colors.text_dim()
+            };
+            
+            content.push(Line::from(vec![
+                Span::styled(format!("     {}{} ", prefix, checkbox), rule_style),
+                Span::styled(rule_name, rule_style),
+            ]));
+        }
+    }
+
+    content.push(Line::from(""));
+    // Contextual help line
+    content.push(Line::from(vec![
+        Span::styled("  💡 ", colors.text_dim()),
+        Span::styled(watch_field_help(editor.field), colors.text_muted().add_modifier(Modifier::ITALIC)),
+    ]));
 
     let editor_widget = Paragraph::new(content)
         .block(
@@ -1162,6 +1202,7 @@ fn watch_field_help(field: WatchEditorField) -> &'static str {
     match field {
         WatchEditorField::Path => "Full path to watch, e.g. /home/user/Downloads (~ not expanded)",
         WatchEditorField::Recursive => "Space/←→ to toggle — watch subdirectories too",
+        WatchEditorField::Rules => "Space: toggle │ a: select all │ c: clear (all rules apply)",
     }
 }
 

@@ -418,20 +418,23 @@ pub enum WatchEditorField {
     #[default]
     Path,
     Recursive,
+    Rules,
 }
 
 impl WatchEditorField {
     pub fn next(self) -> Self {
         match self {
             Self::Path => Self::Recursive,
-            Self::Recursive => Self::Path,
+            Self::Recursive => Self::Rules,
+            Self::Rules => Self::Path,
         }
     }
 
     pub fn prev(self) -> Self {
         match self {
-            Self::Path => Self::Recursive,
+            Self::Path => Self::Rules,
             Self::Recursive => Self::Path,
+            Self::Rules => Self::Recursive,
         }
     }
 }
@@ -451,30 +454,54 @@ pub struct WatchEditorState {
     /// Watch recursively
     pub recursive: bool,
 
-    /// Rule filter (preserved but not editable in TUI yet)
+    /// Selected rule names (empty = all rules apply)
     pub rules_filter: Vec<String>,
+
+    /// All available rule names (for display in selector)
+    pub available_rules: Vec<String>,
+
+    /// Currently highlighted rule in the rules list
+    pub rules_cursor: usize,
 }
 
 impl WatchEditorState {
     /// Create a new watch editor for adding
-    pub fn new_watch() -> Self {
+    pub fn new_watch(available_rules: Vec<String>) -> Self {
         Self {
             field: WatchEditorField::Path,
             editing_index: None,
             path: String::new(),
             recursive: false,
             rules_filter: Vec::new(),
+            available_rules,
+            rules_cursor: 0,
         }
     }
 
     /// Create editor state from an existing watch
-    pub fn from_watch(index: usize, watch: &crate::config::WatchConfig) -> Self {
+    pub fn from_watch(index: usize, watch: &crate::config::WatchConfig, available_rules: Vec<String>) -> Self {
         Self {
             field: WatchEditorField::Path,
             editing_index: Some(index),
             path: watch.path.display().to_string(),
             recursive: watch.recursive,
             rules_filter: watch.rules.clone(),
+            available_rules,
+            rules_cursor: 0,
+        }
+    }
+
+    /// Check if a rule is selected
+    pub fn is_rule_selected(&self, rule_name: &str) -> bool {
+        self.rules_filter.contains(&rule_name.to_string())
+    }
+
+    /// Toggle a rule selection
+    pub fn toggle_rule(&mut self, rule_name: &str) {
+        if let Some(pos) = self.rules_filter.iter().position(|r| r == rule_name) {
+            self.rules_filter.remove(pos);
+        } else {
+            self.rules_filter.push(rule_name.to_string());
         }
     }
 

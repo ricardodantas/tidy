@@ -259,9 +259,12 @@ fn handle_watches_key(state: &mut AppState, key: KeyEvent) {
     
     let len = state.config.watches.len();
 
+    // Get available rule names for the editor
+    let available_rules: Vec<String> = state.config.rules.iter().map(|r| r.name.clone()).collect();
+
     // Allow adding new watches even if list is empty
     if key.code == KeyCode::Char('a') || key.code == KeyCode::Char('n') {
-        state.watch_editor = Some(WatchEditorState::new_watch());
+        state.watch_editor = Some(WatchEditorState::new_watch(available_rules));
         state.mode = Mode::AddWatch;
         return;
     }
@@ -297,7 +300,7 @@ fn handle_watches_key(state: &mut AppState, key: KeyEvent) {
             // Edit selected watch
             if let Some(idx) = state.selected_watch {
                 if let Some(watch) = state.config.watches.get(idx) {
-                    state.watch_editor = Some(WatchEditorState::from_watch(idx, watch));
+                    state.watch_editor = Some(WatchEditorState::from_watch(idx, watch, available_rules));
                     state.mode = Mode::EditWatch;
                 }
             } else {
@@ -784,6 +787,37 @@ fn handle_watch_editor_field_input(editor: &mut WatchEditorState, key: KeyEvent)
         WatchEditorField::Recursive => {
             if matches!(key.code, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) {
                 editor.recursive = !editor.recursive;
+            }
+        }
+        WatchEditorField::Rules => {
+            let rule_count = editor.available_rules.len();
+            if rule_count == 0 {
+                return;
+            }
+            match key.code {
+                KeyCode::Up | KeyCode::Char('k') => {
+                    editor.rules_cursor = editor.rules_cursor.saturating_sub(1);
+                }
+                KeyCode::Down | KeyCode::Char('j') => {
+                    if editor.rules_cursor < rule_count.saturating_sub(1) {
+                        editor.rules_cursor += 1;
+                    }
+                }
+                KeyCode::Char(' ') => {
+                    // Toggle selection for current rule
+                    if let Some(rule_name) = editor.available_rules.get(editor.rules_cursor).cloned() {
+                        editor.toggle_rule(&rule_name);
+                    }
+                }
+                KeyCode::Char('a') => {
+                    // Select all rules
+                    editor.rules_filter = editor.available_rules.clone();
+                }
+                KeyCode::Char('c') => {
+                    // Clear all selections (means all rules apply)
+                    editor.rules_filter.clear();
+                }
+                _ => {}
             }
         }
     }
