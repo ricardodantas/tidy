@@ -91,11 +91,44 @@ cargo build --release</code></pre>
       
       <section id="quick-start">
         <h2>Quick Start</h2>
-        <p>Get up and running in three simple steps:</p>
+        
+        <div class="callout warning">
+          <strong>⚠️ Important:</strong> Hazelnut needs <strong>two things</strong> to work:
+          <ol>
+            <li><strong>Watch folders</strong> — which directories to monitor</li>
+            <li><strong>Rules</strong> — what to do with files in those folders</li>
+          </ol>
+          Rules alone won't do anything without at least one watch folder configured!
+        </div>
+        
+        <p>Get up and running in these steps:</p>
         
         <div class="numbered-steps">
           <div class="numbered-step">
             <span class="number">1</span>
+            <div>
+              <h4>Configure watches and rules</h4>
+              <p>Edit <code>~/.config/hazelnut/config.toml</code>:</p>
+              <div class="code-block inline">
+                <pre><code># Watch your Downloads folder
+[[watch]]
+path = "/home/youruser/Downloads"
+
+# Move PDFs to Documents
+[[rule]]
+name = "Organize PDFs"
+[rule.condition]
+extension = "pdf"
+[rule.action]
+type = "move"
+destination = "/home/youruser/Documents/PDFs"</code></pre>
+              </div>
+              <p class="note">💡 Use full paths — the <code>~</code> shortcut is not expanded.</p>
+            </div>
+          </div>
+          
+          <div class="numbered-step">
+            <span class="number">2</span>
             <div>
               <h4>Start the daemon</h4>
               <p>The daemon runs in the background, watching folders and applying rules:</p>
@@ -107,7 +140,7 @@ cargo build --release</code></pre>
           </div>
           
           <div class="numbered-step">
-            <span class="number">2</span>
+            <span class="number">3</span>
             <div>
               <h4>Launch the TUI</h4>
               <p>Open the terminal interface to manage rules and monitor activity:</p>
@@ -115,14 +148,6 @@ cargo build --release</code></pre>
                 <pre><code>hazelnut</code></pre>
                 <button class="copy-btn small" data-copy="hazelnut">Copy</button>
               </div>
-            </div>
-          </div>
-          
-          <div class="numbered-step">
-            <span class="number">3</span>
-            <div>
-              <h4>Configure your rules</h4>
-              <p>Edit the config file at <code>~/.config/hazelnut/config.toml</code> or use the TUI to create rules.</p>
             </div>
           </div>
         </div>
@@ -624,6 +649,32 @@ pattern = "{date:YYYY-MM-DD}_{name}.{ext}"`}</code></pre>
 </Layout>
 
 <style>
+  .callout {
+    padding: 1rem 1.25rem;
+    border-radius: 8px;
+    margin: 1.5rem 0;
+  }
+  
+  .callout.warning {
+    background: rgba(250, 179, 135, 0.1);
+    border-left: 4px solid var(--primary);
+  }
+  
+  .callout ol {
+    margin: 0.75rem 0 0 1.25rem;
+    padding: 0;
+  }
+  
+  .callout li {
+    margin: 0.25rem 0;
+  }
+  
+  .note {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+  }
+  
   .docs-layout {
     display: flex;
     padding-top: var(--nav-height);

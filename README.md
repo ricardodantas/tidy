@@ -123,14 +123,25 @@ cargo install --path .
 
 ### First Run
 
+Hazelnut needs **two things** to work:
+1. **Watch folders** — which directories to monitor
+2. **Rules** — what to do with files in those folders
+
+> ⚠️ **Important**: Rules alone won't do anything! You must also configure at least one watch folder.
+
 1. **Create a config file** at `~/.config/hazelnut/config.toml`:
 
 ```toml
-# Watch your Downloads folder
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STEP 1: Define which folders to watch
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [[watch]]
-path = "~/Downloads"
+path = "/home/youruser/Downloads"  # Use full path (~ not expanded)
+recursive = false                   # Set true to include subfolders
 
-# Organize PDFs automatically
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# STEP 2: Define rules for what to do with files
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 [[rule]]
 name = "Organize PDFs"
 
@@ -139,7 +150,7 @@ extension = "pdf"
 
 [rule.action]
 type = "move"
-destination = "~/Documents/PDFs"
+destination = "/home/youruser/Documents/PDFs"
 ```
 
 2. **Launch the TUI** to manage and monitor:
@@ -405,6 +416,8 @@ The rule editor dialog allows you to configure:
 - **Action** - Move, Copy, Rename, Trash, Delete, Run Command, or Archive
 
 Use `Tab` to move between fields, `Enter` to save, and `Esc` to cancel.
+
+> 💡 **Remember**: Rules only apply to files in **watched folders**. Make sure you've configured at least one `[[watch]]` entry in your config, or add one via the Watches view.
 
 ### Example Rules
 

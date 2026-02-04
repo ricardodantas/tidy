@@ -2,6 +2,8 @@
 
 Hazelnut uses [TOML](https://toml.io) for configuration. This document provides a complete reference for all configuration options.
 
+> ⚠️ **Important**: Hazelnut requires **both** watch folders AND rules to work. Rules define *what* to do with files, but watches define *where* to look for them. Without watch folders, rules won't be triggered.
+
 ## Config File Location
 
 The default configuration file location is:
@@ -16,6 +18,8 @@ You can specify a different config file with the `--config` flag:
 hazelnut --config /path/to/config.toml
 hazelnutd --config /path/to/config.toml run
 ```
+
+> 💡 **Note**: Use full paths in config files (e.g., `/home/user/Downloads`). The `~` shortcut is not expanded by the daemon.
 
 ## Complete Example
 
@@ -183,6 +187,8 @@ Rules are the core of Hazelnut. Each rule consists of:
 1. **Metadata** - Name, enabled status, processing behavior
 2. **Condition** - What files to match
 3. **Action** - What to do with matched files
+
+> ⚠️ **Remember**: Rules only apply to files in **watched folders**. Make sure you have at least one `[[watch]]` entry configured (see [Watch Configuration](#watch-configuration)).
 
 ### Creating Rules in the TUI
 

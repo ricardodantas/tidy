@@ -200,6 +200,7 @@ destination = "~/Documents/PDFs"</code></pre>
   <section class="quick-start">
     <div class="container">
       <h2>Quick Start</h2>
+      <p class="section-intro">Hazelnut needs <strong>watch folders</strong> (where to look) and <strong>rules</strong> (what to do). Both are required!</p>
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
@@ -221,6 +222,14 @@ destination = "~/Documents/PDFs"</code></pre>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
+            <h3>Configure Watches + Rules</h3>
+            <p class="step-note">Edit <code>~/.config/hazelnut/config.toml</code> — see <a href="/docs#config-file">docs</a> for examples</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
             <h3>Start the Daemon</h3>
             <div class="step-code">
               <code>hazelnutd start</code>
@@ -235,7 +244,7 @@ destination = "~/Documents/PDFs"</code></pre>
         </div>
 
         <div class="step">
-          <div class="step-number">3</div>
+          <div class="step-number">4</div>
           <div class="step-content">
             <h3>Launch the TUI</h3>
             <div class="step-code">
@@ -633,6 +642,13 @@ destination = "~/Documents/PDFs"</code></pre>
   .quick-start {
     padding: 6rem 1.5rem;
   }
+  
+  .quick-start .section-intro {
+    text-align: center;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+  }
 
   .steps {
     display: flex;
@@ -665,6 +681,15 @@ destination = "~/Documents/PDFs"</code></pre>
   .step-content h3 {
     font-size: 1.25rem;
     margin-bottom: 0.75rem;
+  }
+  
+  .step-note {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+  
+  .step-note a {
+    color: var(--primary);
   }
 
   .step-code {
