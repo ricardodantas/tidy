@@ -34,12 +34,6 @@
 
 <br>
 
-<p align="center">
-  <img src="demo.gif" alt="Tidy Demo" width="700">
-</p>
-
-<br>
-
 ## 📖 Table of Contents
 
 - [✨ Features](#-features)

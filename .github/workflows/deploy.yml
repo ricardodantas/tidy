@@ -39,9 +39,6 @@ jobs:
 
       - name: Copy assets from root
         run: |
-          cp ../demo.gif public/
-          cp ../demo-themes.gif public/
-          cp ../demo-features.gif public/
           cp -r ../screenshots public/
 
       - name: Build
