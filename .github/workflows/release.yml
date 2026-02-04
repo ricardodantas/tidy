@@ -234,25 +234,49 @@ jobs:
       - name: Update formula
         run: |
           VERSION="${{ needs.release.outputs.version }}"
-          URL="https://github.com/ricardodantas/hazelnut/archive/refs/tags/v${VERSION}.tar.gz"
           
-          # Download and calculate SHA256
-          curl -sL "$URL" -o hazelnut.tar.gz
-          SHA256=$(sha256sum hazelnut.tar.gz | cut -d' ' -f1)
+          # Download SHA256SUMS
+          curl -sL "https://github.com/ricardodantas/hazelnut/releases/download/v${VERSION}/SHA256SUMS.txt" -o SHA256SUMS.txt
           
-          # Update formula
+          # Extract checksums for each platform
+          SHA_AARCH64_DARWIN=$(grep "aarch64-apple-darwin" SHA256SUMS.txt | cut -d' ' -f1)
+          SHA_X86_64_DARWIN=$(grep "x86_64-apple-darwin" SHA256SUMS.txt | cut -d' ' -f1)
+          SHA_AARCH64_LINUX=$(grep "aarch64-unknown-linux-gnu" SHA256SUMS.txt | cut -d' ' -f1)
+          SHA_X86_64_LINUX=$(grep "x86_64-unknown-linux-gnu" SHA256SUMS.txt | cut -d' ' -f1)
+          
+          # Update formula with pre-built binaries
           cat > homebrew-tap/Formula/hazelnut.rb << EOF
           class Hazelnut < Formula
             desc "Terminal-based automated file organizer inspired by Hazel"
             homepage "https://github.com/ricardodantas/hazelnut"
-            url "https://github.com/ricardodantas/hazelnut/archive/refs/tags/v${VERSION}.tar.gz"
-            sha256 "${SHA256}"
+            version "${VERSION}"
             license "MIT"
 
-            depends_on "rust" => :build
+            on_macos do
+              on_arm do
+                url "https://github.com/ricardodantas/hazelnut/releases/download/v#{version}/hazelnut-#{version}-aarch64-apple-darwin.tar.gz"
+                sha256 "${SHA_AARCH64_DARWIN}"
+              end
+              on_intel do
+                url "https://github.com/ricardodantas/hazelnut/releases/download/v#{version}/hazelnut-#{version}-x86_64-apple-darwin.tar.gz"
+                sha256 "${SHA_X86_64_DARWIN}"
+              end
+            end
+
+            on_linux do
+              on_arm do
+                url "https://github.com/ricardodantas/hazelnut/releases/download/v#{version}/hazelnut-#{version}-aarch64-unknown-linux-gnu.tar.gz"
+                sha256 "${SHA_AARCH64_LINUX}"
+              end
+              on_intel do
+                url "https://github.com/ricardodantas/hazelnut/releases/download/v#{version}/hazelnut-#{version}-x86_64-unknown-linux-gnu.tar.gz"
+                sha256 "${SHA_X86_64_LINUX}"
+              end
+            end
 
             def install
-              system "cargo", "install", *std_cargo_args
+              bin.install "hazelnut"
+              bin.install "hazelnutd" if File.exist?("hazelnutd")
             end
 
             test do
@@ -267,5 +291,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add Formula/hazelnut.rb
-          git commit -m "hazelnut: update to v${{ needs.release.outputs.version }}"
+          git diff --staged --quiet || git commit -m "hazelnut: update to v${{ needs.release.outputs.version }}"
           git push
