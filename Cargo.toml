@@ -9,6 +9,7 @@ license = "MIT"
 repository = "https://github.com/ricardodantas/tidy"
 keywords = ["tui", "file-organizer", "automation", "cli", "terminal"]
 categories = ["command-line-utilities", "filesystem"]
+default-run = "tidy"
 
 [dependencies]
 # TUI
