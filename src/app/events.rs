@@ -8,6 +8,26 @@ use super::state::{
 };
 use crate::theme::Theme;
 
+/// Process pending update if flagged (call after UI redraw)
+pub fn process_pending_update(state: &mut AppState) {
+    if !state.pending_update {
+        return;
+    }
+    state.pending_update = false;
+
+    // Run the actual update
+    match crate::run_update(&state.package_manager) {
+        Ok(()) => {
+            state.update_status = Some("Update complete! Please restart hazelnut.".to_string());
+            state.update_available = None;
+        }
+        Err(e) => {
+            state.update_status = Some(format!("Update failed: {}", e));
+        }
+    }
+    state.mode = Mode::Normal;
+}
+
 /// Handle a key event and update state
 pub fn handle_key(state: &mut AppState, key: KeyEvent) {
     // Handle mode-specific input first
@@ -411,22 +431,11 @@ fn handle_update_confirm_key(state: &mut AppState, key: KeyEvent) {
             state.mode = Mode::Normal;
         }
         KeyCode::Enter | KeyCode::Char('y') | KeyCode::Char('Y') => {
-            // Start the update
+            // Set updating mode and flag - actual update runs on next tick
+            // This allows the UI to redraw and show "Updating..." first
             state.mode = Mode::Updating;
-            state.update_status = Some("Updating...".to_string());
-
-            // Run update (this blocks, but it's intentional for now)
-            match crate::run_update(&state.package_manager) {
-                Ok(()) => {
-                    state.update_status =
-                        Some("Update complete! Please restart hazelnut.".to_string());
-                    state.update_available = None;
-                }
-                Err(e) => {
-                    state.update_status = Some(format!("Update failed: {}", e));
-                }
-            }
-            state.mode = Mode::Normal;
+            state.update_status = Some("Updating... please wait".to_string());
+            state.pending_update = true;
         }
         _ => {}
     }

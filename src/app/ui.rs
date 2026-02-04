@@ -3,7 +3,7 @@
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Layout, Rect},
-    style::{Modifier, Style},
+    style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs, Wrap},
 };
@@ -84,8 +84,15 @@ pub fn render(frame: &mut Frame, state: &AppState) {
         render_update_confirm_dialog(frame, state);
     }
 
-    // Render update status message
-    if let Some(ref status) = state.update_status {
+    // Render updating overlay (while update is in progress)
+    if state.mode == Mode::Updating {
+        render_updating_overlay(frame, state);
+    }
+
+    // Render update status message (after completion)
+    if state.mode != Mode::Updating
+        && let Some(ref status) = state.update_status
+    {
         render_update_status(frame, state, status);
     }
 }
@@ -1732,4 +1739,46 @@ fn render_update_status(frame: &mut Frame, state: &AppState, status: &str) {
         );
 
     frame.render_widget(paragraph, banner_area);
+}
+
+fn render_updating_overlay(frame: &mut Frame, state: &AppState) {
+    let colors = state.theme.colors();
+    let area = frame.area();
+
+    // Dim the background
+    let overlay = Block::default().style(Style::default().bg(Color::Black));
+    frame.render_widget(overlay, area);
+
+    // Centered modal
+    let popup_width = 40;
+    let popup_height = 5;
+    let popup_area = Rect {
+        x: area.width.saturating_sub(popup_width) / 2,
+        y: area.height.saturating_sub(popup_height) / 2,
+        width: popup_width.min(area.width),
+        height: popup_height.min(area.height),
+    };
+
+    let text = vec![
+        Line::from(""),
+        Line::from(Span::styled(
+            "⏳ Updating... please wait",
+            Style::default()
+                .fg(colors.warning)
+                .add_modifier(Modifier::BOLD),
+        )),
+        Line::from(""),
+    ];
+
+    let paragraph = Paragraph::new(text).alignment(Alignment::Center).block(
+        Block::default()
+            .title(" Update in Progress ")
+            .title_alignment(Alignment::Center)
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(colors.warning))
+            .style(Style::default().bg(colors.bg)),
+    );
+
+    frame.render_widget(paragraph, popup_area);
 }

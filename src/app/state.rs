@@ -170,6 +170,9 @@ pub struct AppState {
 
     /// Update status message
     pub update_status: Option<String>,
+
+    /// Flag to trigger update on next tick (allows UI to redraw first)
+    pub pending_update: bool,
 }
 
 /// Available views in the TUI
@@ -233,6 +236,7 @@ impl AppState {
             update_available: None,
             package_manager: crate::detect_package_manager(),
             update_status: None,
+            pending_update: false,
         };
 
         // Check for updates in background
