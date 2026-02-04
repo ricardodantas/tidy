@@ -687,6 +687,19 @@ fn render_help_popup(frame: &mut Frame, state: &AppState) {
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
+            "  Dashboard",
+            colors.text_primary().add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            Span::styled("  D                  ", colors.key_hint()),
+            Span::styled("Toggle daemon on/off", colors.text()),
+        ]),
+        Line::from(vec![
+            Span::styled("  U                  ", colors.key_hint()),
+            Span::styled("Update hazelnut (if available)", colors.text()),
+        ]),
+        Line::from(""),
+        Line::from(vec![Span::styled(
             "  General",
             colors.text_primary().add_modifier(Modifier::BOLD),
         )]),
