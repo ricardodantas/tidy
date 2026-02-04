@@ -2,7 +2,10 @@
 
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-use super::state::{AppState, Mode, RuleEditorField, RuleEditorState, SettingsItem, View, WatchEditorField, WatchEditorState};
+use super::state::{
+    AppState, Mode, RuleEditorField, RuleEditorState, SettingsItem, View, WatchEditorField,
+    WatchEditorState,
+};
 use crate::theme::Theme;
 
 /// Handle a key event and update state
@@ -234,14 +237,14 @@ fn handle_rules_key(state: &mut AppState, key: KeyEvent) {
                 if idx < state.config.rules.len() {
                     let rule_name = state.config.rules[idx].name.clone();
                     state.config.rules.remove(idx);
-                    
+
                     // Update selection
                     if state.config.rules.is_empty() {
                         state.selected_rule = None;
                     } else if idx >= state.config.rules.len() {
                         state.selected_rule = Some(state.config.rules.len() - 1);
                     }
-                    
+
                     // Save config
                     save_config(state);
                     state.set_status(format!("Deleted rule '{}'", rule_name));
@@ -256,7 +259,7 @@ fn handle_rules_key(state: &mut AppState, key: KeyEvent) {
 
 fn handle_watches_key(state: &mut AppState, key: KeyEvent) {
     use super::state::WatchEditorState;
-    
+
     let len = state.config.watches.len();
 
     // Get available rule names for the editor
@@ -300,7 +303,8 @@ fn handle_watches_key(state: &mut AppState, key: KeyEvent) {
             // Edit selected watch
             if let Some(idx) = state.selected_watch {
                 if let Some(watch) = state.config.watches.get(idx) {
-                    state.watch_editor = Some(WatchEditorState::from_watch(idx, watch, available_rules));
+                    state.watch_editor =
+                        Some(WatchEditorState::from_watch(idx, watch, available_rules));
                     state.mode = Mode::EditWatch;
                 }
             } else {
@@ -313,14 +317,14 @@ fn handle_watches_key(state: &mut AppState, key: KeyEvent) {
                 if idx < state.config.watches.len() {
                     let watch_path = state.config.watches[idx].path.display().to_string();
                     state.config.watches.remove(idx);
-                    
+
                     // Update selection
                     if state.config.watches.is_empty() {
                         state.selected_watch = None;
                     } else if idx >= state.config.watches.len() {
                         state.selected_watch = Some(state.config.watches.len() - 1);
                     }
-                    
+
                     // Save config
                     save_config(state);
                     state.set_status(format!("Deleted watch '{}'", watch_path));
@@ -444,9 +448,7 @@ fn handle_settings_action(state: &mut AppState) {
                 .config_path
                 .as_ref()
                 .map(|p| p.display().to_string())
-                .or_else(|| {
-                    crate::config::Config::default_path().map(|p| p.display().to_string())
-                })
+                .or_else(|| crate::config::Config::default_path().map(|p| p.display().to_string()))
                 .unwrap_or_else(|| "Not set".to_string());
             state.set_status(format!("Config: {}", path));
         }
@@ -650,7 +652,10 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
     match editor.field {
         RuleEditorField::Name => handle_text_input(&mut editor.name, key),
         RuleEditorField::Enabled => {
-            if matches!(key.code, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) {
+            if matches!(
+                key.code,
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right
+            ) {
                 editor.enabled = !editor.enabled;
             }
         }
@@ -662,7 +667,10 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
         RuleEditorField::AgeGreater => handle_numeric_input(&mut editor.age_greater, key),
         RuleEditorField::AgeLess => handle_numeric_input(&mut editor.age_less, key),
         RuleEditorField::IsDirectory => {
-            if matches!(key.code, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) {
+            if matches!(
+                key.code,
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right
+            ) {
                 editor.is_directory = match editor.is_directory {
                     None => Some(true),
                     Some(true) => Some(false),
@@ -671,7 +679,10 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
             }
         }
         RuleEditorField::IsHidden => {
-            if matches!(key.code, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) {
+            if matches!(
+                key.code,
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right
+            ) {
                 editor.is_hidden = match editor.is_hidden {
                     None => Some(true),
                     Some(true) => Some(false),
@@ -688,7 +699,9 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
             }
             _ => {}
         },
-        RuleEditorField::ActionDestination => handle_text_input(&mut editor.action_destination, key),
+        RuleEditorField::ActionDestination => {
+            handle_text_input(&mut editor.action_destination, key)
+        }
         RuleEditorField::ActionPattern => handle_text_input(&mut editor.action_pattern, key),
         RuleEditorField::ActionCommand => handle_text_input(&mut editor.action_command, key),
     }
@@ -785,7 +798,10 @@ fn handle_watch_editor_field_input(editor: &mut WatchEditorState, key: KeyEvent)
     match editor.field {
         WatchEditorField::Path => handle_text_input(&mut editor.path, key),
         WatchEditorField::Recursive => {
-            if matches!(key.code, KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right) {
+            if matches!(
+                key.code,
+                KeyCode::Char(' ') | KeyCode::Left | KeyCode::Right
+            ) {
                 editor.recursive = !editor.recursive;
             }
         }
@@ -805,7 +821,9 @@ fn handle_watch_editor_field_input(editor: &mut WatchEditorState, key: KeyEvent)
                 }
                 KeyCode::Char(' ') => {
                     // Toggle selection for current rule
-                    if let Some(rule_name) = editor.available_rules.get(editor.rules_cursor).cloned() {
+                    if let Some(rule_name) =
+                        editor.available_rules.get(editor.rules_cursor).cloned()
+                    {
                         editor.toggle_rule(&rule_name);
                     }
                 }

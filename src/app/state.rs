@@ -174,10 +174,7 @@ impl AppState {
     /// Create a new application state from config with a specific config path
     pub fn with_config_path(config: Config, theme: Theme, config_path: Option<PathBuf>) -> Self {
         // Find current theme index
-        let theme_picker_index = Theme::all()
-            .iter()
-            .position(|t| *t == theme)
-            .unwrap_or(0);
+        let theme_picker_index = Theme::all().iter().position(|t| *t == theme).unwrap_or(0);
 
         let mut state = Self {
             view: View::default(),
@@ -479,7 +476,11 @@ impl WatchEditorState {
     }
 
     /// Create editor state from an existing watch
-    pub fn from_watch(index: usize, watch: &crate::config::WatchConfig, available_rules: Vec<String>) -> Self {
+    pub fn from_watch(
+        index: usize,
+        watch: &crate::config::WatchConfig,
+        available_rules: Vec<String>,
+    ) -> Self {
         Self {
             field: WatchEditorField::Path,
             editing_index: Some(index),
@@ -561,81 +562,102 @@ impl RuleEditorState {
 
     /// Create editor state from an existing rule
     pub fn from_rule(index: usize, rule: &Rule) -> Self {
-        let (action_type, action_destination, action_pattern, action_command, action_args, action_overwrite, action_delete_original) =
-            match &rule.action {
-                Action::Move { destination, overwrite, .. } => (
-                    ActionTypeSelection::Move,
-                    destination.display().to_string(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    *overwrite,
-                    false,
-                ),
-                Action::Copy { destination, overwrite, .. } => (
-                    ActionTypeSelection::Copy,
-                    destination.display().to_string(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    *overwrite,
-                    false,
-                ),
-                Action::Rename { pattern } => (
-                    ActionTypeSelection::Rename,
-                    String::new(),
-                    pattern.clone(),
-                    String::new(),
-                    String::new(),
-                    false,
-                    false,
-                ),
-                Action::Trash => (
-                    ActionTypeSelection::Trash,
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    false,
-                    false,
-                ),
-                Action::Delete => (
-                    ActionTypeSelection::Delete,
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    false,
-                    false,
-                ),
-                Action::Run { command, args } => (
-                    ActionTypeSelection::Run,
-                    String::new(),
-                    String::new(),
-                    command.clone(),
-                    args.join(" "),
-                    false,
-                    false,
-                ),
-                Action::Archive { destination, delete_original } => (
-                    ActionTypeSelection::Archive,
-                    destination.as_ref().map(|p| p.display().to_string()).unwrap_or_default(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    false,
-                    *delete_original,
-                ),
-                Action::Nothing => (
-                    ActionTypeSelection::Nothing,
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    String::new(),
-                    false,
-                    false,
-                ),
-            };
+        let (
+            action_type,
+            action_destination,
+            action_pattern,
+            action_command,
+            action_args,
+            action_overwrite,
+            action_delete_original,
+        ) = match &rule.action {
+            Action::Move {
+                destination,
+                overwrite,
+                ..
+            } => (
+                ActionTypeSelection::Move,
+                destination.display().to_string(),
+                String::new(),
+                String::new(),
+                String::new(),
+                *overwrite,
+                false,
+            ),
+            Action::Copy {
+                destination,
+                overwrite,
+                ..
+            } => (
+                ActionTypeSelection::Copy,
+                destination.display().to_string(),
+                String::new(),
+                String::new(),
+                String::new(),
+                *overwrite,
+                false,
+            ),
+            Action::Rename { pattern } => (
+                ActionTypeSelection::Rename,
+                String::new(),
+                pattern.clone(),
+                String::new(),
+                String::new(),
+                false,
+                false,
+            ),
+            Action::Trash => (
+                ActionTypeSelection::Trash,
+                String::new(),
+                String::new(),
+                String::new(),
+                String::new(),
+                false,
+                false,
+            ),
+            Action::Delete => (
+                ActionTypeSelection::Delete,
+                String::new(),
+                String::new(),
+                String::new(),
+                String::new(),
+                false,
+                false,
+            ),
+            Action::Run { command, args } => (
+                ActionTypeSelection::Run,
+                String::new(),
+                String::new(),
+                command.clone(),
+                args.join(" "),
+                false,
+                false,
+            ),
+            Action::Archive {
+                destination,
+                delete_original,
+            } => (
+                ActionTypeSelection::Archive,
+                destination
+                    .as_ref()
+                    .map(|p| p.display().to_string())
+                    .unwrap_or_default(),
+                String::new(),
+                String::new(),
+                String::new(),
+                false,
+                *delete_original,
+            ),
+            Action::Nothing => (
+                ActionTypeSelection::Nothing,
+                String::new(),
+                String::new(),
+                String::new(),
+                String::new(),
+                false,
+                false,
+            ),
+        };
 
         Self {
             field: RuleEditorField::Name,
@@ -646,10 +668,26 @@ impl RuleEditorState {
             extension: rule.condition.extension.clone().unwrap_or_default(),
             name_glob: rule.condition.name_matches.clone().unwrap_or_default(),
             name_regex: rule.condition.name_regex.clone().unwrap_or_default(),
-            size_greater: rule.condition.size_greater_than.map(|v| v.to_string()).unwrap_or_default(),
-            size_less: rule.condition.size_less_than.map(|v| v.to_string()).unwrap_or_default(),
-            age_greater: rule.condition.age_days_greater_than.map(|v| v.to_string()).unwrap_or_default(),
-            age_less: rule.condition.age_days_less_than.map(|v| v.to_string()).unwrap_or_default(),
+            size_greater: rule
+                .condition
+                .size_greater_than
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+            size_less: rule
+                .condition
+                .size_less_than
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+            age_greater: rule
+                .condition
+                .age_days_greater_than
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+            age_less: rule
+                .condition
+                .age_days_less_than
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
             is_directory: rule.condition.is_directory,
             is_hidden: rule.condition.is_hidden,
             action_type,
@@ -665,10 +703,22 @@ impl RuleEditorState {
     /// Build a Rule from the editor state
     pub fn to_rule(&self) -> Rule {
         let condition = Condition {
-            extension: if self.extension.is_empty() { None } else { Some(self.extension.clone()) },
+            extension: if self.extension.is_empty() {
+                None
+            } else {
+                Some(self.extension.clone())
+            },
             extensions: Vec::new(),
-            name_matches: if self.name_glob.is_empty() { None } else { Some(self.name_glob.clone()) },
-            name_regex: if self.name_regex.is_empty() { None } else { Some(self.name_regex.clone()) },
+            name_matches: if self.name_glob.is_empty() {
+                None
+            } else {
+                Some(self.name_glob.clone())
+            },
+            name_regex: if self.name_regex.is_empty() {
+                None
+            } else {
+                Some(self.name_regex.clone())
+            },
             size_greater_than: self.size_greater.parse().ok(),
             size_less_than: self.size_less.parse().ok(),
             age_days_greater_than: self.age_greater.parse().ok(),
@@ -695,7 +745,11 @@ impl RuleEditorState {
             ActionTypeSelection::Delete => Action::Delete,
             ActionTypeSelection::Run => Action::Run {
                 command: self.action_command.clone(),
-                args: self.action_args.split_whitespace().map(String::from).collect(),
+                args: self
+                    .action_args
+                    .split_whitespace()
+                    .map(String::from)
+                    .collect(),
             },
             ActionTypeSelection::Archive => Action::Archive {
                 destination: if self.action_destination.is_empty() {

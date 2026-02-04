@@ -49,7 +49,7 @@ enum Commands {
 /// Get the PID file path
 fn pid_file_path() -> PathBuf {
     dirs::runtime_dir()
-        .or_else(|| dirs::state_dir())
+        .or_else(dirs::state_dir)
         .unwrap_or_else(|| PathBuf::from("/tmp"))
         .join("hazelnutd.pid")
 }
@@ -57,7 +57,7 @@ fn pid_file_path() -> PathBuf {
 /// Get the log file path
 fn log_file_path() -> PathBuf {
     dirs::state_dir()
-        .or_else(|| dirs::data_local_dir())
+        .or_else(dirs::data_local_dir)
         .unwrap_or_else(|| PathBuf::from("/tmp"))
         .join("hazelnut")
         .join("hazelnutd.log")
@@ -166,7 +166,7 @@ fn start_daemon(config_path: Option<PathBuf>) -> Result<()> {
     // Build command
     let mut cmd = Command::new(&exe);
     cmd.arg("run");
-    
+
     if let Some(ref config) = config_path {
         cmd.arg("--config").arg(config);
     }
@@ -215,7 +215,7 @@ fn start_daemon(config_path: Option<PathBuf>) -> Result<()> {
 
 fn stop_daemon() -> Result<()> {
     let (running, pid) = get_status();
-    
+
     if !running {
         println!("🌰 Daemon is not running");
         return Ok(());
@@ -259,7 +259,7 @@ fn show_status() {
         println!("   PID: {}", pid);
         println!("   PID file: {}", pid_file_path().display());
         println!("   Log file: {}", log_file_path().display());
-        
+
         // Try to get process uptime on Linux
         #[cfg(target_os = "linux")]
         {
@@ -269,25 +269,25 @@ fn show_status() {
                     // Field 22 is starttime in clock ticks
                     if let Ok(start_ticks) = parts[21].parse::<u64>() {
                         // Get system uptime
-                        if let Ok(uptime_str) = fs::read_to_string("/proc/uptime") {
-                            if let Some(uptime_secs) = uptime_str.split_whitespace().next() {
-                                if let Ok(uptime) = uptime_secs.parse::<f64>() {
-                                    let clock_ticks: u64 = unsafe { libc::sysconf(libc::_SC_CLK_TCK) as u64 };
-                                    let start_secs = start_ticks / clock_ticks;
-                                    let running_secs = uptime as u64 - start_secs;
-                                    
-                                    let hours = running_secs / 3600;
-                                    let mins = (running_secs % 3600) / 60;
-                                    let secs = running_secs % 60;
-                                    
-                                    if hours > 0 {
-                                        println!("   Uptime: {}h {}m {}s", hours, mins, secs);
-                                    } else if mins > 0 {
-                                        println!("   Uptime: {}m {}s", mins, secs);
-                                    } else {
-                                        println!("   Uptime: {}s", secs);
-                                    }
-                                }
+                        if let Ok(uptime_str) = fs::read_to_string("/proc/uptime")
+                            && let Some(uptime_secs) = uptime_str.split_whitespace().next()
+                            && let Ok(uptime) = uptime_secs.parse::<f64>()
+                        {
+                            let clock_ticks: u64 =
+                                unsafe { libc::sysconf(libc::_SC_CLK_TCK) as u64 };
+                            let start_secs = start_ticks / clock_ticks;
+                            let running_secs = uptime as u64 - start_secs;
+
+                            let hours = running_secs / 3600;
+                            let mins = (running_secs % 3600) / 60;
+                            let secs = running_secs % 60;
+
+                            if hours > 0 {
+                                println!("   Uptime: {}h {}m {}s", hours, mins, secs);
+                            } else if mins > 0 {
+                                println!("   Uptime: {}m {}s", mins, secs);
+                            } else {
+                                println!("   Uptime: {}s", secs);
                             }
                         }
                     }
@@ -320,8 +320,8 @@ fn reload_config() -> Result<()> {
 }
 
 async fn run_daemon(config_path: Option<std::path::PathBuf>) -> Result<()> {
-    use tokio::signal::unix::{signal, SignalKind};
-    use tokio::time::{interval, Duration};
+    use tokio::signal::unix::{SignalKind, signal};
+    use tokio::time::{Duration, interval};
     use tracing::info;
 
     // Write PID file for foreground mode too
@@ -334,7 +334,7 @@ async fn run_daemon(config_path: Option<std::path::PathBuf>) -> Result<()> {
 
     let config_path_clone = config_path.clone();
     let mut config = hazelnut::Config::load(config_path.as_deref())?;
-    
+
     info!(
         "Loaded config with {} watch paths and {} rules",
         config.watches.len(),
@@ -379,7 +379,7 @@ async fn run_daemon(config_path: Option<std::path::PathBuf>) -> Result<()> {
                                     }
                                 }
                                 watcher = new_watcher;
-                                info!("Configuration reloaded: {} watches, {} rules", 
+                                info!("Configuration reloaded: {} watches, {} rules",
                                     config.watches.len(), config.rules.len());
                             }
                             Err(e) => {

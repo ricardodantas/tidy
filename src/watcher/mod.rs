@@ -85,7 +85,9 @@ impl Watcher {
 
             // Only process create and modify events
             match event.kind {
-                notify::EventKind::Create(_) | notify::EventKind::Modify(_) | notify::EventKind::Access(_) => {
+                notify::EventKind::Create(_)
+                | notify::EventKind::Modify(_)
+                | notify::EventKind::Access(_) => {
                     for path in event.paths {
                         if path.exists() && self.engine.process(&path)? {
                             processed += 1;

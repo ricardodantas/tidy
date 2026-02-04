@@ -8,7 +8,9 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs, Wrap},
 };
 
-use super::state::{AppState, LogLevel, Mode, RuleEditorField, SettingsItem, View, WatchEditorField};
+use super::state::{
+    AppState, LogLevel, Mode, RuleEditorField, SettingsItem, View, WatchEditorField,
+};
 use crate::config::Config;
 use crate::theme::Theme;
 
@@ -709,11 +711,7 @@ fn render_theme_picker(frame: &mut Frame, state: &AppState) {
             let selected = i == state.theme_picker_index;
 
             // Create color preview squares
-            let preview = format!(
-                "  {} {} ",
-                if selected { "▸" } else { " " },
-                theme.name()
-            );
+            let preview = format!("  {} {} ", if selected { "▸" } else { " " }, theme.name());
 
             let style = if selected {
                 Style::default()
@@ -812,7 +810,9 @@ fn render_settings_dialog(frame: &mut Frame, state: &AppState) {
                 items.len()
             ))
             .title_style(colors.text_primary())
-            .title_bottom(Line::from(" ↑↓ navigate │ ↵/␣ toggle │ ←→ adjust │ Esc close ").centered()),
+            .title_bottom(
+                Line::from(" ↑↓ navigate │ ↵/␣ toggle │ ←→ adjust │ Esc close ").centered(),
+            ),
     );
 
     frame.render_widget(settings_list, popup_area);
@@ -938,15 +938,31 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             colors.text_primary().add_modifier(Modifier::BOLD),
         )]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::Name)), field_style(RuleEditorField::Name)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::Name)),
+                field_style(RuleEditorField::Name),
+            ),
             Span::styled("Name:        ", label_style(RuleEditorField::Name)),
             Span::styled(&editor.name, field_style(RuleEditorField::Name)),
-            Span::styled(if editor.field == RuleEditorField::Name { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.field == RuleEditorField::Name {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::Enabled)), field_style(RuleEditorField::Enabled)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::Enabled)),
+                field_style(RuleEditorField::Enabled),
+            ),
             Span::styled("Enabled:     ", label_style(RuleEditorField::Enabled)),
-            Span::styled(if editor.enabled { "✓ Yes" } else { "✗ No" }, field_style(RuleEditorField::Enabled)),
+            Span::styled(
+                if editor.enabled { "✓ Yes" } else { "✗ No" },
+                field_style(RuleEditorField::Enabled),
+            ),
         ]),
         Line::from(""),
         // Conditions Section
@@ -955,58 +971,189 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             colors.text_primary().add_modifier(Modifier::BOLD),
         )]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::Extension)), field_style(RuleEditorField::Extension)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::Extension)),
+                field_style(RuleEditorField::Extension),
+            ),
             Span::styled("Extension:   ", label_style(RuleEditorField::Extension)),
-            Span::styled(if editor.extension.is_empty() { "(any)" } else { &editor.extension }, field_style(RuleEditorField::Extension)),
-            Span::styled(if editor.field == RuleEditorField::Extension { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.extension.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.extension
+                },
+                field_style(RuleEditorField::Extension),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::Extension {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::NameGlob)), field_style(RuleEditorField::NameGlob)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::NameGlob)),
+                field_style(RuleEditorField::NameGlob),
+            ),
             Span::styled("Name Glob:   ", label_style(RuleEditorField::NameGlob)),
-            Span::styled(if editor.name_glob.is_empty() { "(any)" } else { &editor.name_glob }, field_style(RuleEditorField::NameGlob)),
-            Span::styled(if editor.field == RuleEditorField::NameGlob { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.name_glob.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.name_glob
+                },
+                field_style(RuleEditorField::NameGlob),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::NameGlob {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::NameRegex)), field_style(RuleEditorField::NameRegex)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::NameRegex)),
+                field_style(RuleEditorField::NameRegex),
+            ),
             Span::styled("Name Regex:  ", label_style(RuleEditorField::NameRegex)),
-            Span::styled(if editor.name_regex.is_empty() { "(any)" } else { &editor.name_regex }, field_style(RuleEditorField::NameRegex)),
-            Span::styled(if editor.field == RuleEditorField::NameRegex { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.name_regex.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.name_regex
+                },
+                field_style(RuleEditorField::NameRegex),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::NameRegex {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::SizeGreater)), field_style(RuleEditorField::SizeGreater)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::SizeGreater)),
+                field_style(RuleEditorField::SizeGreater),
+            ),
             Span::styled("Size >:      ", label_style(RuleEditorField::SizeGreater)),
-            Span::styled(if editor.size_greater.is_empty() { "(any)" } else { &editor.size_greater }, field_style(RuleEditorField::SizeGreater)),
-            Span::styled(if editor.field == RuleEditorField::SizeGreater { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.size_greater.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.size_greater
+                },
+                field_style(RuleEditorField::SizeGreater),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::SizeGreater {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
             Span::styled(" bytes", colors.text_dim()),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::SizeLess)), field_style(RuleEditorField::SizeLess)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::SizeLess)),
+                field_style(RuleEditorField::SizeLess),
+            ),
             Span::styled("Size <:      ", label_style(RuleEditorField::SizeLess)),
-            Span::styled(if editor.size_less.is_empty() { "(any)" } else { &editor.size_less }, field_style(RuleEditorField::SizeLess)),
-            Span::styled(if editor.field == RuleEditorField::SizeLess { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.size_less.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.size_less
+                },
+                field_style(RuleEditorField::SizeLess),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::SizeLess {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
             Span::styled(" bytes", colors.text_dim()),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::AgeGreater)), field_style(RuleEditorField::AgeGreater)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::AgeGreater)),
+                field_style(RuleEditorField::AgeGreater),
+            ),
             Span::styled("Age > days:  ", label_style(RuleEditorField::AgeGreater)),
-            Span::styled(if editor.age_greater.is_empty() { "(any)" } else { &editor.age_greater }, field_style(RuleEditorField::AgeGreater)),
-            Span::styled(if editor.field == RuleEditorField::AgeGreater { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.age_greater.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.age_greater
+                },
+                field_style(RuleEditorField::AgeGreater),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::AgeGreater {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::AgeLess)), field_style(RuleEditorField::AgeLess)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::AgeLess)),
+                field_style(RuleEditorField::AgeLess),
+            ),
             Span::styled("Age < days:  ", label_style(RuleEditorField::AgeLess)),
-            Span::styled(if editor.age_less.is_empty() { "(any)" } else { &editor.age_less }, field_style(RuleEditorField::AgeLess)),
-            Span::styled(if editor.field == RuleEditorField::AgeLess { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.age_less.is_empty() {
+                    "(any)"
+                } else {
+                    &editor.age_less
+                },
+                field_style(RuleEditorField::AgeLess),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::AgeLess {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::IsDirectory)), field_style(RuleEditorField::IsDirectory)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::IsDirectory)),
+                field_style(RuleEditorField::IsDirectory),
+            ),
             Span::styled("Is Dir:      ", label_style(RuleEditorField::IsDirectory)),
-            Span::styled(tri_state_display(editor.is_directory), field_style(RuleEditorField::IsDirectory)),
+            Span::styled(
+                tri_state_display(editor.is_directory),
+                field_style(RuleEditorField::IsDirectory),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::IsHidden)), field_style(RuleEditorField::IsHidden)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::IsHidden)),
+                field_style(RuleEditorField::IsHidden),
+            ),
             Span::styled("Is Hidden:   ", label_style(RuleEditorField::IsHidden)),
-            Span::styled(tri_state_display(editor.is_hidden), field_style(RuleEditorField::IsHidden)),
+            Span::styled(
+                tri_state_display(editor.is_hidden),
+                field_style(RuleEditorField::IsHidden),
+            ),
         ]),
         Line::from(""),
         // Action Section
@@ -1015,33 +1162,96 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             colors.text_primary().add_modifier(Modifier::BOLD),
         )]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionType)), field_style(RuleEditorField::ActionType)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::ActionType)),
+                field_style(RuleEditorField::ActionType),
+            ),
             Span::styled("Type:        ", label_style(RuleEditorField::ActionType)),
-            Span::styled(format!("< {} >", editor.action_type.name()), field_style(RuleEditorField::ActionType)),
+            Span::styled(
+                format!("< {} >", editor.action_type.name()),
+                field_style(RuleEditorField::ActionType),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionDestination)), field_style(RuleEditorField::ActionDestination)),
-            Span::styled("Destination: ", label_style(RuleEditorField::ActionDestination)),
-            Span::styled(if editor.action_destination.is_empty() { "(none)" } else { &editor.action_destination }, field_style(RuleEditorField::ActionDestination)),
-            Span::styled(if editor.field == RuleEditorField::ActionDestination { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::ActionDestination)),
+                field_style(RuleEditorField::ActionDestination),
+            ),
+            Span::styled(
+                "Destination: ",
+                label_style(RuleEditorField::ActionDestination),
+            ),
+            Span::styled(
+                if editor.action_destination.is_empty() {
+                    "(none)"
+                } else {
+                    &editor.action_destination
+                },
+                field_style(RuleEditorField::ActionDestination),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::ActionDestination {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionPattern)), field_style(RuleEditorField::ActionPattern)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::ActionPattern)),
+                field_style(RuleEditorField::ActionPattern),
+            ),
             Span::styled("Pattern:     ", label_style(RuleEditorField::ActionPattern)),
-            Span::styled(if editor.action_pattern.is_empty() { "(none)" } else { &editor.action_pattern }, field_style(RuleEditorField::ActionPattern)),
-            Span::styled(if editor.field == RuleEditorField::ActionPattern { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.action_pattern.is_empty() {
+                    "(none)"
+                } else {
+                    &editor.action_pattern
+                },
+                field_style(RuleEditorField::ActionPattern),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::ActionPattern {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionCommand)), field_style(RuleEditorField::ActionCommand)),
+            Span::styled(
+                format!(" {} ", cursor(RuleEditorField::ActionCommand)),
+                field_style(RuleEditorField::ActionCommand),
+            ),
             Span::styled("Command:     ", label_style(RuleEditorField::ActionCommand)),
-            Span::styled(if editor.action_command.is_empty() { "(none)" } else { &editor.action_command }, field_style(RuleEditorField::ActionCommand)),
-            Span::styled(if editor.field == RuleEditorField::ActionCommand { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.action_command.is_empty() {
+                    "(none)"
+                } else {
+                    &editor.action_command
+                },
+                field_style(RuleEditorField::ActionCommand),
+            ),
+            Span::styled(
+                if editor.field == RuleEditorField::ActionCommand {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(""),
         // Contextual help line
         Line::from(vec![
             Span::styled("  💡 ", colors.text_dim()),
-            Span::styled(field_help(editor.field), colors.text_muted().add_modifier(Modifier::ITALIC)),
+            Span::styled(
+                field_help(editor.field),
+                colors.text_muted().add_modifier(Modifier::ITALIC),
+            ),
         ]),
     ];
 
@@ -1054,7 +1264,9 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 .style(Style::default().bg(colors.bg))
                 .title(title)
                 .title_style(colors.text_primary())
-                .title_bottom(Line::from(" Tab: next field │ Enter: save │ Esc: cancel ").centered()),
+                .title_bottom(
+                    Line::from(" Tab: next field │ Enter: save │ Esc: cancel ").centered(),
+                ),
         )
         .wrap(Wrap { trim: false });
 
@@ -1094,7 +1306,7 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
     // Calculate popup size - needs more height for rules list
     let rules_count = editor.available_rules.len();
     let base_height = 10u16; // Path, Recursive, help, margins
-    let rules_height = (rules_count as u16).min(6).max(2); // Show up to 6 rules
+    let rules_height = (rules_count as u16).clamp(2, 6); // Show up to 6 rules
     let popup_height = (base_height + rules_height).min(area.height.saturating_sub(4));
     let popup_width = 65u16.min(area.width.saturating_sub(4));
 
@@ -1136,18 +1348,48 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
     let mut content = vec![
         Line::from(""),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(WatchEditorField::Path)), field_style(WatchEditorField::Path)),
+            Span::styled(
+                format!(" {} ", cursor(WatchEditorField::Path)),
+                field_style(WatchEditorField::Path),
+            ),
             Span::styled("Path:      ", label_style(WatchEditorField::Path)),
-            Span::styled(if editor.path.is_empty() { "(enter path)" } else { &editor.path }, field_style(WatchEditorField::Path)),
-            Span::styled(if editor.field == WatchEditorField::Path { "▏" } else { "" }, colors.text_primary()),
+            Span::styled(
+                if editor.path.is_empty() {
+                    "(enter path)"
+                } else {
+                    &editor.path
+                },
+                field_style(WatchEditorField::Path),
+            ),
+            Span::styled(
+                if editor.field == WatchEditorField::Path {
+                    "▏"
+                } else {
+                    ""
+                },
+                colors.text_primary(),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(WatchEditorField::Recursive)), field_style(WatchEditorField::Recursive)),
+            Span::styled(
+                format!(" {} ", cursor(WatchEditorField::Recursive)),
+                field_style(WatchEditorField::Recursive),
+            ),
             Span::styled("Recursive: ", label_style(WatchEditorField::Recursive)),
-            Span::styled(if editor.recursive { "✓ Yes" } else { "✗ No" }, field_style(WatchEditorField::Recursive)),
+            Span::styled(
+                if editor.recursive {
+                    "✓ Yes"
+                } else {
+                    "✗ No"
+                },
+                field_style(WatchEditorField::Recursive),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!(" {} ", cursor(WatchEditorField::Rules)), field_style(WatchEditorField::Rules)),
+            Span::styled(
+                format!(" {} ", cursor(WatchEditorField::Rules)),
+                field_style(WatchEditorField::Rules),
+            ),
             Span::styled("Rules:     ", label_style(WatchEditorField::Rules)),
             Span::styled(
                 if editor.rules_filter.is_empty() {
@@ -1165,10 +1407,10 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
         for (i, rule_name) in editor.available_rules.iter().enumerate() {
             let is_selected = editor.is_rule_selected(rule_name);
             let is_cursor = i == editor.rules_cursor;
-            
+
             let checkbox = if is_selected { "☑" } else { "☐" };
             let prefix = if is_cursor { " ▸ " } else { "   " };
-            
+
             let rule_style = if is_cursor {
                 colors.selected().add_modifier(Modifier::BOLD)
             } else if is_selected {
@@ -1176,7 +1418,7 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
             } else {
                 colors.text_dim()
             };
-            
+
             content.push(Line::from(vec![
                 Span::styled(format!("     {}{} ", prefix, checkbox), rule_style),
                 Span::styled(rule_name, rule_style),
@@ -1188,7 +1430,10 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
     // Contextual help line
     content.push(Line::from(vec![
         Span::styled("  💡 ", colors.text_dim()),
-        Span::styled(watch_field_help(editor.field), colors.text_muted().add_modifier(Modifier::ITALIC)),
+        Span::styled(
+            watch_field_help(editor.field),
+            colors.text_muted().add_modifier(Modifier::ITALIC),
+        ),
     ]));
 
     let editor_widget = Paragraph::new(content)
@@ -1200,7 +1445,9 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
                 .style(Style::default().bg(colors.bg))
                 .title(title)
                 .title_style(colors.text_primary())
-                .title_bottom(Line::from(" Tab: next field │ Enter: save │ Esc: cancel ").centered()),
+                .title_bottom(
+                    Line::from(" Tab: next field │ Enter: save │ Esc: cancel ").centered(),
+                ),
         )
         .wrap(Wrap { trim: false });
 
@@ -1244,12 +1491,19 @@ fn render_about_dialog(frame: &mut Frame, state: &AppState) {
         Line::from(""),
         Line::from(Span::styled(
             "🌰 Terminal file organizer inspired by Hazel",
-            Style::default().fg(colors.fg).add_modifier(Modifier::ITALIC),
+            Style::default()
+                .fg(colors.fg)
+                .add_modifier(Modifier::ITALIC),
         )),
         Line::from(""),
         Line::from(vec![
             Span::styled("Version: ", colors.text_muted()),
-            Span::styled(version, Style::default().fg(colors.primary).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                version,
+                Style::default()
+                    .fg(colors.primary)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
@@ -1271,7 +1525,12 @@ fn render_about_dialog(frame: &mut Frame, state: &AppState) {
         )),
         Line::from(""),
         Line::from(vec![
-            Span::styled(" [G] ", Style::default().fg(colors.primary).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                " [G] ",
+                Style::default()
+                    .fg(colors.primary)
+                    .add_modifier(Modifier::BOLD),
+            ),
             Span::raw("Open GitHub"),
             Span::raw("    "),
             Span::styled(" [Esc] ", colors.text_muted()),
@@ -1279,17 +1538,19 @@ fn render_about_dialog(frame: &mut Frame, state: &AppState) {
         ]),
     ]);
 
-    let paragraph = Paragraph::new(lines)
-        .alignment(Alignment::Center)
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .border_style(Style::default().fg(colors.primary))
-                .style(Style::default().bg(colors.bg))
-                .title(" 🌰 About Hazelnut ")
-                .title_style(Style::default().fg(colors.primary).add_modifier(Modifier::BOLD)),
-        );
+    let paragraph = Paragraph::new(lines).alignment(Alignment::Center).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .border_style(Style::default().fg(colors.primary))
+            .style(Style::default().bg(colors.bg))
+            .title(" 🌰 About Hazelnut ")
+            .title_style(
+                Style::default()
+                    .fg(colors.primary)
+                    .add_modifier(Modifier::BOLD),
+            ),
+    );
 
     frame.render_widget(paragraph, popup_area);
 }
