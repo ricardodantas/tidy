@@ -545,7 +545,7 @@ args = ["{path}", "-quality", "80", "{path}"]
 | `Esc` | Cancel |
 
 <p align="center">
-  <img src="screenshots/10-help.png" alt="Help Screen" width="600">
+  <img src="screenshots/09-help.png" alt="Help Screen" width="600">
 </p>
 
 <br>
