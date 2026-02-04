@@ -70,7 +70,24 @@ jobs:
 
       - name: Create and push tag
         run: |
-          git tag "v${{ steps.bump.outputs.version }}"
+          VERSION="v${{ steps.bump.outputs.version }}"
+          
+          # Check if tag already exists
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists"
+            
+            # If bump=none, we're re-releasing - delete and recreate the tag
+            if [ "${{ inputs.bump }}" = "none" ]; then
+              echo "Re-releasing: deleting existing tag..."
+              git tag -d "$VERSION" || true
+              git push origin ":refs/tags/$VERSION" || true
+            else
+              echo "Error: Tag exists but we're bumping version. This shouldn't happen."
+              exit 1
+            fi
+          fi
+          
+          git tag "$VERSION"
           git push origin main --tags
 
   build:
