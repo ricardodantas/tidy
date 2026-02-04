@@ -1,43 +1,129 @@
-# Astro Starter Kit: Minimal
+# Tidy Website
 
-```sh
-npm create astro@latest -- --template minimal
+The official website for Tidy, built with [Astro](https://astro.build).
+
+## 🚀 Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## 📁 Project Structure
 
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
+```
+website/
 ├── public/
+│   ├── demo.gif            # Main demo animation
+│   ├── demo-themes.gif     # Theme switching demo
+│   ├── screenshots/        # TUI screenshots
+│   └── favicon.svg
 ├── src/
+│   ├── layouts/
+│   │   └── Layout.astro    # Base layout with nav and footer
 │   └── pages/
-│       └── index.astro
+│       ├── index.astro     # Home page
+│       ├── docs.astro      # Documentation
+│       └── themes.astro    # Theme gallery
+├── astro.config.mjs        # Astro configuration
 └── package.json
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## 🌐 Deploying to GitHub Pages
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+The website is automatically deployed via GitHub Actions when you push changes to the `main` branch.
 
-Any static assets, like images, can be placed in the `public/` directory.
+### First-time Setup
 
-## 🧞 Commands
+1. Go to your repository Settings → Pages
+2. Under "Build and deployment", select:
+   - **Source**: GitHub Actions
+3. Push to `main` to trigger a deployment
 
-All commands are run from the root of the project, from a terminal:
+### Manual Deployment
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+If you need to deploy manually:
 
-## 👀 Want to learn more?
+```bash
+# Build the site
+npm run build
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+# The output will be in dist/
+# Upload the contents of dist/ to your hosting provider
+```
+
+### Configuration
+
+The site is configured to work with the `/tidy` base path for GitHub Pages. If you're hosting elsewhere, update `astro.config.mjs`:
+
+```js
+export default defineConfig({
+  site: 'https://your-domain.com',
+  base: '/', // or your base path
+});
+```
+
+## 🎨 Design
+
+- **Theme**: Dark mode by default using Dracula-inspired colors
+- **Fonts**: Inter (sans-serif) + JetBrains Mono (monospace)
+- **Style**: Clean, modern, minimal with smooth animations
+
+### Colors (Dracula palette)
+
+```css
+--bg-primary: #282a36;
+--bg-secondary: #1e1f29;
+--bg-tertiary: #44475a;
+--text-primary: #f8f8f2;
+--text-secondary: #6272a4;
+--accent-purple: #bd93f9;
+--accent-pink: #ff79c6;
+--accent-cyan: #8be9fd;
+--accent-green: #50fa7b;
+--accent-yellow: #f1fa8c;
+--accent-orange: #ffb86c;
+--accent-red: #ff5555;
+```
+
+## ✨ Features
+
+- **Copy to clipboard**: Install commands have click-to-copy functionality
+- **Smooth scrolling**: Anchor links scroll smoothly to sections
+- **Responsive**: Works on all screen sizes
+- **Fast**: Static site with minimal JavaScript
+- **Accessible**: Semantic HTML with ARIA labels
+
+## 📝 Updating Content
+
+### Adding screenshots
+
+1. Add new screenshots to the root `screenshots/` directory
+2. They'll be automatically copied during the build process
+3. Reference them in your pages: `{baseUrl}screenshots/filename.png`
+
+### Adding themes to the gallery
+
+Edit `src/pages/themes.astro` and add a new entry to the `themes` array:
+
+```js
+{
+  name: 'Theme Name',
+  slug: 'theme-slug',
+  description: 'Short description',
+  colors: ['#bg', '#color1', '#color2', '#color3', '#color4']
+}
+```
+
+## 📄 License
+
+MIT - Same as the main Tidy project.

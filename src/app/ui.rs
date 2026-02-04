@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs, Wrap},
 };
 
-use super::state::{ActionTypeSelection, AppState, LogLevel, Mode, RuleEditorField, SettingsItem, View};
+use super::state::{AppState, LogLevel, Mode, SettingsItem, View};
 use crate::config::Config;
 use crate::theme::Theme;
 
@@ -841,6 +841,8 @@ fn get_settings_value_display(state: &AppState, item: SettingsItem) -> String {
 }
 
 fn render_rule_editor(frame: &mut Frame, state: &AppState) {
+    use super::state::RuleEditorField;
+    
     let colors = state.theme.colors();
     let area = frame.area();
 
@@ -848,9 +850,9 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
         return;
     };
 
-    // Calculate popup size - larger for the editor
+    // Calculate popup size - wider for the editor
     let popup_width = 70u16.min(area.width.saturating_sub(4));
-    let popup_height = 30u16.min(area.height.saturating_sub(4));
+    let popup_height = 26u16.min(area.height.saturating_sub(4));
 
     let popup_area = Rect {
         x: (area.width - popup_width) / 2,
@@ -862,156 +864,137 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
     // Clear the area
     frame.render_widget(Clear, popup_area);
 
-    let title = if state.mode == Mode::AddRule {
-        " ➕ New Rule "
-    } else {
-        " ✏ Edit Rule "
-    };
-
-    // Build the form content
-    let mut lines: Vec<Line> = Vec::new();
-
-    // Helper to create a field line
-    let field_line = |label: &str, value: &str, field: RuleEditorField, current: RuleEditorField| -> Line {
-        let is_focused = field == current;
-        let cursor = if is_focused { "▸" } else { " " };
-        let label_style = if is_focused {
-            colors.text_primary().add_modifier(Modifier::BOLD)
-        } else {
-            colors.text_dim()
-        };
-        let value_style = if is_focused {
-            colors.text_secondary()
+    // Helper to render a field
+    let field_style = |f: RuleEditorField| {
+        if editor.field == f {
+            colors.selected().add_modifier(Modifier::BOLD)
         } else {
             colors.text()
-        };
-        let input_display = if is_focused && value.is_empty() {
-            "│".to_string()
-        } else if is_focused {
-            format!("{}│", value)
-        } else if value.is_empty() {
-            "(empty)".to_string()
-        } else {
-            value.to_string()
-        };
-
-        Line::from(vec![
-            Span::styled(format!(" {} ", cursor), label_style),
-            Span::styled(format!("{:<20}", label), label_style),
-            Span::styled(input_display, value_style),
-        ])
+        }
     };
 
-    // Helper for toggle fields
-    let toggle_line = |label: &str, value: bool, field: RuleEditorField, current: RuleEditorField| -> Line {
-        let is_focused = field == current;
-        let cursor = if is_focused { "▸" } else { " " };
-        let label_style = if is_focused {
-            colors.text_primary().add_modifier(Modifier::BOLD)
+    let label_style = |f: RuleEditorField| {
+        if editor.field == f {
+            colors.text_primary()
         } else {
             colors.text_dim()
-        };
-        let value_display = if value { "✓ Yes" } else { "✗ No" };
-        let value_style = if value {
-            colors.text_success()
-        } else {
-            colors.text_muted()
-        };
-
-        Line::from(vec![
-            Span::styled(format!(" {} ", cursor), label_style),
-            Span::styled(format!("{:<20}", label), label_style),
-            Span::styled(value_display, value_style),
-        ])
+        }
     };
 
-    // Helper for optional bool fields (None/Some(true)/Some(false))
-    let tri_state_line = |label: &str, value: Option<bool>, field: RuleEditorField, current: RuleEditorField| -> Line {
-        let is_focused = field == current;
-        let cursor = if is_focused { "▸" } else { " " };
-        let label_style = if is_focused {
-            colors.text_primary().add_modifier(Modifier::BOLD)
-        } else {
-            colors.text_dim()
-        };
-        let (value_display, value_style) = match value {
-            None => ("─ Any", colors.text_muted()),
-            Some(true) => ("✓ Yes", colors.text_success()),
-            Some(false) => ("✗ No", colors.text_error()),
-        };
+    let cursor = |f: RuleEditorField| if editor.field == f { "▸" } else { " " };
 
-        Line::from(vec![
-            Span::styled(format!(" {} ", cursor), label_style),
-            Span::styled(format!("{:<20}", label), label_style),
-            Span::styled(value_display, value_style),
-        ])
+    let tri_state_display = |v: Option<bool>| match v {
+        None => "Any",
+        Some(true) => "Yes",
+        Some(false) => "No",
     };
 
-    // Section: Basic Info
-    lines.push(Line::from(vec![Span::styled(
-        " ─── Basic ───",
-        colors.text_primary().add_modifier(Modifier::BOLD),
-    )]));
-    lines.push(field_line("Name", &editor.name, RuleEditorField::Name, editor.field));
-    lines.push(toggle_line("Enabled", editor.enabled, RuleEditorField::Enabled, editor.field));
-    lines.push(Line::from(""));
-
-    // Section: Conditions
-    lines.push(Line::from(vec![Span::styled(
-        " ─── Conditions ───",
-        colors.text_primary().add_modifier(Modifier::BOLD),
-    )]));
-    lines.push(field_line("Extension", &editor.extension, RuleEditorField::Extension, editor.field));
-    lines.push(field_line("Name Glob", &editor.name_glob, RuleEditorField::NameGlob, editor.field));
-    lines.push(field_line("Name Regex", &editor.name_regex, RuleEditorField::NameRegex, editor.field));
-    lines.push(field_line("Size > (bytes)", &editor.size_greater, RuleEditorField::SizeGreater, editor.field));
-    lines.push(field_line("Size < (bytes)", &editor.size_less, RuleEditorField::SizeLess, editor.field));
-    lines.push(field_line("Age > (days)", &editor.age_greater, RuleEditorField::AgeGreater, editor.field));
-    lines.push(field_line("Age < (days)", &editor.age_less, RuleEditorField::AgeLess, editor.field));
-    lines.push(tri_state_line("Is Directory", editor.is_directory, RuleEditorField::IsDirectory, editor.field));
-    lines.push(tri_state_line("Is Hidden", editor.is_hidden, RuleEditorField::IsHidden, editor.field));
-    lines.push(Line::from(""));
-
-    // Section: Action
-    lines.push(Line::from(vec![Span::styled(
-        " ─── Action ───",
-        colors.text_primary().add_modifier(Modifier::BOLD),
-    )]));
-
-    // Action type selector
-    let is_focused = editor.field == RuleEditorField::ActionType;
-    let cursor = if is_focused { "▸" } else { " " };
-    let label_style = if is_focused {
-        colors.text_primary().add_modifier(Modifier::BOLD)
+    let title = if state.mode == Mode::EditRule {
+        format!(" ✏ Edit Rule: {} ", editor.name)
     } else {
-        colors.text_dim()
+        " ✚ New Rule ".to_string()
     };
-    lines.push(Line::from(vec![
-        Span::styled(format!(" {} ", cursor), label_style),
-        Span::styled(format!("{:<20}", "Action Type"), label_style),
-        Span::styled(format!("◀ {} ▶", editor.action_type.name()), colors.text_secondary()),
-    ]));
 
-    // Show relevant action fields based on action type
-    match editor.action_type {
-        ActionTypeSelection::Move | ActionTypeSelection::Copy => {
-            lines.push(field_line("Destination", &editor.action_destination, RuleEditorField::ActionDestination, editor.field));
-        }
-        ActionTypeSelection::Rename => {
-            lines.push(field_line("Pattern", &editor.action_pattern, RuleEditorField::ActionPattern, editor.field));
-        }
-        ActionTypeSelection::Run => {
-            lines.push(field_line("Command", &editor.action_command, RuleEditorField::ActionCommand, editor.field));
-        }
-        ActionTypeSelection::Archive => {
-            lines.push(field_line("Destination", &editor.action_destination, RuleEditorField::ActionDestination, editor.field));
-        }
-        ActionTypeSelection::Trash | ActionTypeSelection::Delete | ActionTypeSelection::Nothing => {
-            // No additional fields needed
-        }
-    }
+    let content = vec![
+        Line::from(""),
+        // Basic Info Section
+        Line::from(vec![Span::styled(
+            "  Basic Info",
+            colors.text_primary().add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::Name)), field_style(RuleEditorField::Name)),
+            Span::styled("Name:        ", label_style(RuleEditorField::Name)),
+            Span::styled(&editor.name, field_style(RuleEditorField::Name)),
+            Span::styled(if editor.field == RuleEditorField::Name { "▏" } else { "" }, colors.text_primary()),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::Enabled)), field_style(RuleEditorField::Enabled)),
+            Span::styled("Enabled:     ", label_style(RuleEditorField::Enabled)),
+            Span::styled(if editor.enabled { "✓ Yes" } else { "✗ No" }, field_style(RuleEditorField::Enabled)),
+        ]),
+        Line::from(""),
+        // Conditions Section
+        Line::from(vec![Span::styled(
+            "  Conditions",
+            colors.text_primary().add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::Extension)), field_style(RuleEditorField::Extension)),
+            Span::styled("Extension:   ", label_style(RuleEditorField::Extension)),
+            Span::styled(if editor.extension.is_empty() { "(any)" } else { &editor.extension }, field_style(RuleEditorField::Extension)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::NameGlob)), field_style(RuleEditorField::NameGlob)),
+            Span::styled("Name Glob:   ", label_style(RuleEditorField::NameGlob)),
+            Span::styled(if editor.name_glob.is_empty() { "(any)" } else { &editor.name_glob }, field_style(RuleEditorField::NameGlob)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::NameRegex)), field_style(RuleEditorField::NameRegex)),
+            Span::styled("Name Regex:  ", label_style(RuleEditorField::NameRegex)),
+            Span::styled(if editor.name_regex.is_empty() { "(any)" } else { &editor.name_regex }, field_style(RuleEditorField::NameRegex)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::SizeGreater)), field_style(RuleEditorField::SizeGreater)),
+            Span::styled("Size >:      ", label_style(RuleEditorField::SizeGreater)),
+            Span::styled(if editor.size_greater.is_empty() { "(any)" } else { &editor.size_greater }, field_style(RuleEditorField::SizeGreater)),
+            Span::styled(" bytes", colors.text_dim()),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::SizeLess)), field_style(RuleEditorField::SizeLess)),
+            Span::styled("Size <:      ", label_style(RuleEditorField::SizeLess)),
+            Span::styled(if editor.size_less.is_empty() { "(any)" } else { &editor.size_less }, field_style(RuleEditorField::SizeLess)),
+            Span::styled(" bytes", colors.text_dim()),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::AgeGreater)), field_style(RuleEditorField::AgeGreater)),
+            Span::styled("Age > days:  ", label_style(RuleEditorField::AgeGreater)),
+            Span::styled(if editor.age_greater.is_empty() { "(any)" } else { &editor.age_greater }, field_style(RuleEditorField::AgeGreater)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::AgeLess)), field_style(RuleEditorField::AgeLess)),
+            Span::styled("Age < days:  ", label_style(RuleEditorField::AgeLess)),
+            Span::styled(if editor.age_less.is_empty() { "(any)" } else { &editor.age_less }, field_style(RuleEditorField::AgeLess)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::IsDirectory)), field_style(RuleEditorField::IsDirectory)),
+            Span::styled("Is Dir:      ", label_style(RuleEditorField::IsDirectory)),
+            Span::styled(tri_state_display(editor.is_directory), field_style(RuleEditorField::IsDirectory)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::IsHidden)), field_style(RuleEditorField::IsHidden)),
+            Span::styled("Is Hidden:   ", label_style(RuleEditorField::IsHidden)),
+            Span::styled(tri_state_display(editor.is_hidden), field_style(RuleEditorField::IsHidden)),
+        ]),
+        Line::from(""),
+        // Action Section
+        Line::from(vec![Span::styled(
+            "  Action",
+            colors.text_primary().add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionType)), field_style(RuleEditorField::ActionType)),
+            Span::styled("Type:        ", label_style(RuleEditorField::ActionType)),
+            Span::styled(format!("< {} >", editor.action_type.name()), field_style(RuleEditorField::ActionType)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionDestination)), field_style(RuleEditorField::ActionDestination)),
+            Span::styled("Destination: ", label_style(RuleEditorField::ActionDestination)),
+            Span::styled(if editor.action_destination.is_empty() { "(none)" } else { &editor.action_destination }, field_style(RuleEditorField::ActionDestination)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionPattern)), field_style(RuleEditorField::ActionPattern)),
+            Span::styled("Pattern:     ", label_style(RuleEditorField::ActionPattern)),
+            Span::styled(if editor.action_pattern.is_empty() { "(none)" } else { &editor.action_pattern }, field_style(RuleEditorField::ActionPattern)),
+        ]),
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor(RuleEditorField::ActionCommand)), field_style(RuleEditorField::ActionCommand)),
+            Span::styled("Command:     ", label_style(RuleEditorField::ActionCommand)),
+            Span::styled(if editor.action_command.is_empty() { "(none)" } else { &editor.action_command }, field_style(RuleEditorField::ActionCommand)),
+        ]),
+    ];
 
-    let form = Paragraph::new(lines)
+    let editor_widget = Paragraph::new(content)
         .block(
             Block::default()
                 .borders(Borders::ALL)
@@ -1020,8 +1003,9 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 .style(Style::default().bg(colors.bg))
                 .title(title)
                 .title_style(colors.text_primary())
-                .title_bottom(Line::from(" Tab: next │ Shift+Tab: prev │ Enter: save │ Esc: cancel ").centered()),
-        );
+                .title_bottom(Line::from(" Tab: next │ ↵: save │ Esc: cancel ").centered()),
+        )
+        .wrap(Wrap { trim: false });
 
-    frame.render_widget(form, popup_area);
+    frame.render_widget(editor_widget, popup_area);
 }
