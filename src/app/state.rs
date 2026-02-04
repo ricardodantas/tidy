@@ -1,7 +1,7 @@
 //! Application state management
 
 use crate::config::Config;
-use crate::rules::Rule;
+use crate::rules::{Action, Condition, Rule};
 use crate::theme::Theme;
 use std::path::PathBuf;
 
@@ -15,6 +15,62 @@ pub enum Mode {
     ThemePicker,
     /// Help dialog
     Help,
+    /// Settings dialog
+    Settings,
+    /// Editing an existing rule
+    EditRule,
+    /// Adding a new rule
+    AddRule,
+}
+
+/// Settings menu items
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SettingsItem {
+    DaemonControl,
+    ThemeSelection,
+    ConfigLocation,
+    PollingInterval,
+    LogRetention,
+    StartupBehavior,
+    Notifications,
+}
+
+impl SettingsItem {
+    pub fn all() -> &'static [SettingsItem] {
+        &[
+            SettingsItem::DaemonControl,
+            SettingsItem::ThemeSelection,
+            SettingsItem::ConfigLocation,
+            SettingsItem::PollingInterval,
+            SettingsItem::LogRetention,
+            SettingsItem::StartupBehavior,
+            SettingsItem::Notifications,
+        ]
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            SettingsItem::DaemonControl => "Start/Stop Daemon",
+            SettingsItem::ThemeSelection => "Theme",
+            SettingsItem::ConfigLocation => "Config File",
+            SettingsItem::PollingInterval => "Polling Interval",
+            SettingsItem::LogRetention => "Log Retention",
+            SettingsItem::StartupBehavior => "Start Daemon on Launch",
+            SettingsItem::Notifications => "Notifications",
+        }
+    }
+
+    pub fn icon(&self) -> &'static str {
+        match self {
+            SettingsItem::DaemonControl => "🔌",
+            SettingsItem::ThemeSelection => "🎨",
+            SettingsItem::ConfigLocation => "📁",
+            SettingsItem::PollingInterval => "⏱",
+            SettingsItem::LogRetention => "📋",
+            SettingsItem::StartupBehavior => "🚀",
+            SettingsItem::Notifications => "🔔",
+        }
+    }
 }
 
 /// Main application state
@@ -28,6 +84,9 @@ pub struct AppState {
 
     /// Loaded configuration
     pub config: Config,
+
+    /// Path to config file (if specified)
+    pub config_path: Option<PathBuf>,
 
     /// Current theme
     pub theme: Theme,
@@ -58,6 +117,15 @@ pub struct AppState {
 
     /// Theme picker index
     pub theme_picker_index: usize,
+
+    /// Settings dialog selected item index
+    pub settings_index: usize,
+
+    /// Whether daemon is currently running
+    pub daemon_running: bool,
+
+    /// Rule editor state
+    pub rule_editor: Option<RuleEditorState>,
 }
 
 /// Available views in the TUI
@@ -91,6 +159,11 @@ pub enum LogLevel {
 impl AppState {
     /// Create a new application state from config
     pub fn new(config: Config, theme: Theme) -> Self {
+        Self::with_config_path(config, theme, None)
+    }
+
+    /// Create a new application state from config with a specific config path
+    pub fn with_config_path(config: Config, theme: Theme, config_path: Option<PathBuf>) -> Self {
         // Find current theme index
         let theme_picker_index = Theme::all()
             .iter()
@@ -101,6 +174,7 @@ impl AppState {
             view: View::default(),
             mode: Mode::default(),
             config,
+            config_path,
             theme,
             selected_rule: None,
             selected_watch: None,
@@ -111,6 +185,9 @@ impl AppState {
             show_help: false,
             frame: 0,
             theme_picker_index,
+            settings_index: 0,
+            daemon_running: false,
+            rule_editor: None,
         };
 
         // Add welcome log entries
@@ -187,5 +264,341 @@ impl AppState {
     /// Increment frame counter (for animations)
     pub fn tick(&mut self) {
         self.frame = self.frame.wrapping_add(1);
+    }
+}
+
+/// Fields in the rule editor
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum RuleEditorField {
+    #[default]
+    Name,
+    Enabled,
+    // Conditions
+    Extension,
+    NameGlob,
+    NameRegex,
+    SizeGreater,
+    SizeLess,
+    AgeGreater,
+    AgeLess,
+    IsDirectory,
+    IsHidden,
+    // Action
+    ActionType,
+    ActionDestination,
+    ActionPattern,
+    ActionCommand,
+}
+
+impl RuleEditorField {
+    /// Get the next field in tab order
+    pub fn next(self) -> Self {
+        match self {
+            Self::Name => Self::Enabled,
+            Self::Enabled => Self::Extension,
+            Self::Extension => Self::NameGlob,
+            Self::NameGlob => Self::NameRegex,
+            Self::NameRegex => Self::SizeGreater,
+            Self::SizeGreater => Self::SizeLess,
+            Self::SizeLess => Self::AgeGreater,
+            Self::AgeGreater => Self::AgeLess,
+            Self::AgeLess => Self::IsDirectory,
+            Self::IsDirectory => Self::IsHidden,
+            Self::IsHidden => Self::ActionType,
+            Self::ActionType => Self::ActionDestination,
+            Self::ActionDestination => Self::ActionPattern,
+            Self::ActionPattern => Self::ActionCommand,
+            Self::ActionCommand => Self::Name,
+        }
+    }
+
+    /// Get the previous field in tab order
+    pub fn prev(self) -> Self {
+        match self {
+            Self::Name => Self::ActionCommand,
+            Self::Enabled => Self::Name,
+            Self::Extension => Self::Enabled,
+            Self::NameGlob => Self::Extension,
+            Self::NameRegex => Self::NameGlob,
+            Self::SizeGreater => Self::NameRegex,
+            Self::SizeLess => Self::SizeGreater,
+            Self::AgeGreater => Self::SizeLess,
+            Self::AgeLess => Self::AgeGreater,
+            Self::IsDirectory => Self::AgeLess,
+            Self::IsHidden => Self::IsDirectory,
+            Self::ActionType => Self::IsHidden,
+            Self::ActionDestination => Self::ActionType,
+            Self::ActionPattern => Self::ActionDestination,
+            Self::ActionCommand => Self::ActionPattern,
+        }
+    }
+}
+
+/// Available action types for the editor
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum ActionTypeSelection {
+    #[default]
+    Move,
+    Copy,
+    Rename,
+    Trash,
+    Delete,
+    Run,
+    Archive,
+    Nothing,
+}
+
+impl ActionTypeSelection {
+    pub fn all() -> &'static [Self] {
+        &[
+            Self::Move,
+            Self::Copy,
+            Self::Rename,
+            Self::Trash,
+            Self::Delete,
+            Self::Run,
+            Self::Archive,
+            Self::Nothing,
+        ]
+    }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Move => "Move",
+            Self::Copy => "Copy",
+            Self::Rename => "Rename",
+            Self::Trash => "Trash",
+            Self::Delete => "Delete",
+            Self::Run => "Run Command",
+            Self::Archive => "Archive",
+            Self::Nothing => "Nothing",
+        }
+    }
+
+    pub fn next(self) -> Self {
+        match self {
+            Self::Move => Self::Copy,
+            Self::Copy => Self::Rename,
+            Self::Rename => Self::Trash,
+            Self::Trash => Self::Delete,
+            Self::Delete => Self::Run,
+            Self::Run => Self::Archive,
+            Self::Archive => Self::Nothing,
+            Self::Nothing => Self::Move,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            Self::Move => Self::Nothing,
+            Self::Copy => Self::Move,
+            Self::Rename => Self::Copy,
+            Self::Trash => Self::Rename,
+            Self::Delete => Self::Trash,
+            Self::Run => Self::Delete,
+            Self::Archive => Self::Run,
+            Self::Nothing => Self::Archive,
+        }
+    }
+}
+
+/// State for the rule editor dialog
+#[derive(Debug, Clone, Default)]
+pub struct RuleEditorState {
+    /// Currently focused field
+    pub field: RuleEditorField,
+
+    /// Rule index being edited (None if adding new)
+    pub editing_index: Option<usize>,
+
+    // Basic fields
+    pub name: String,
+    pub enabled: bool,
+
+    // Condition fields
+    pub extension: String,
+    pub name_glob: String,
+    pub name_regex: String,
+    pub size_greater: String,
+    pub size_less: String,
+    pub age_greater: String,
+    pub age_less: String,
+    pub is_directory: Option<bool>,
+    pub is_hidden: Option<bool>,
+
+    // Action fields
+    pub action_type: ActionTypeSelection,
+    pub action_destination: String,
+    pub action_pattern: String,
+    pub action_command: String,
+    pub action_args: String,
+    pub action_overwrite: bool,
+    pub action_delete_original: bool,
+}
+
+impl RuleEditorState {
+    /// Create a new empty editor state for adding a rule
+    pub fn new_rule() -> Self {
+        Self {
+            enabled: true,
+            ..Default::default()
+        }
+    }
+
+    /// Create editor state from an existing rule
+    pub fn from_rule(index: usize, rule: &Rule) -> Self {
+        let (action_type, action_destination, action_pattern, action_command, action_args, action_overwrite, action_delete_original) =
+            match &rule.action {
+                Action::Move { destination, overwrite, .. } => (
+                    ActionTypeSelection::Move,
+                    destination.display().to_string(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    *overwrite,
+                    false,
+                ),
+                Action::Copy { destination, overwrite, .. } => (
+                    ActionTypeSelection::Copy,
+                    destination.display().to_string(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    *overwrite,
+                    false,
+                ),
+                Action::Rename { pattern } => (
+                    ActionTypeSelection::Rename,
+                    String::new(),
+                    pattern.clone(),
+                    String::new(),
+                    String::new(),
+                    false,
+                    false,
+                ),
+                Action::Trash => (
+                    ActionTypeSelection::Trash,
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    false,
+                    false,
+                ),
+                Action::Delete => (
+                    ActionTypeSelection::Delete,
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    false,
+                    false,
+                ),
+                Action::Run { command, args } => (
+                    ActionTypeSelection::Run,
+                    String::new(),
+                    String::new(),
+                    command.clone(),
+                    args.join(" "),
+                    false,
+                    false,
+                ),
+                Action::Archive { destination, delete_original } => (
+                    ActionTypeSelection::Archive,
+                    destination.as_ref().map(|p| p.display().to_string()).unwrap_or_default(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    false,
+                    *delete_original,
+                ),
+                Action::Nothing => (
+                    ActionTypeSelection::Nothing,
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    String::new(),
+                    false,
+                    false,
+                ),
+            };
+
+        Self {
+            field: RuleEditorField::Name,
+            editing_index: Some(index),
+            name: rule.name.clone(),
+            enabled: rule.enabled,
+            extension: rule.condition.extension.clone().unwrap_or_default(),
+            name_glob: rule.condition.name_matches.clone().unwrap_or_default(),
+            name_regex: rule.condition.name_regex.clone().unwrap_or_default(),
+            size_greater: rule.condition.size_greater_than.map(|v| v.to_string()).unwrap_or_default(),
+            size_less: rule.condition.size_less_than.map(|v| v.to_string()).unwrap_or_default(),
+            age_greater: rule.condition.age_days_greater_than.map(|v| v.to_string()).unwrap_or_default(),
+            age_less: rule.condition.age_days_less_than.map(|v| v.to_string()).unwrap_or_default(),
+            is_directory: rule.condition.is_directory,
+            is_hidden: rule.condition.is_hidden,
+            action_type,
+            action_destination,
+            action_pattern,
+            action_command,
+            action_args,
+            action_overwrite,
+            action_delete_original,
+        }
+    }
+
+    /// Build a Rule from the editor state
+    pub fn to_rule(&self) -> Rule {
+        let condition = Condition {
+            extension: if self.extension.is_empty() { None } else { Some(self.extension.clone()) },
+            extensions: Vec::new(),
+            name_matches: if self.name_glob.is_empty() { None } else { Some(self.name_glob.clone()) },
+            name_regex: if self.name_regex.is_empty() { None } else { Some(self.name_regex.clone()) },
+            size_greater_than: self.size_greater.parse().ok(),
+            size_less_than: self.size_less.parse().ok(),
+            age_days_greater_than: self.age_greater.parse().ok(),
+            age_days_less_than: self.age_less.parse().ok(),
+            is_directory: self.is_directory,
+            is_hidden: self.is_hidden,
+        };
+
+        let action = match self.action_type {
+            ActionTypeSelection::Move => Action::Move {
+                destination: PathBuf::from(&self.action_destination),
+                create_destination: true,
+                overwrite: self.action_overwrite,
+            },
+            ActionTypeSelection::Copy => Action::Copy {
+                destination: PathBuf::from(&self.action_destination),
+                create_destination: true,
+                overwrite: self.action_overwrite,
+            },
+            ActionTypeSelection::Rename => Action::Rename {
+                pattern: self.action_pattern.clone(),
+            },
+            ActionTypeSelection::Trash => Action::Trash,
+            ActionTypeSelection::Delete => Action::Delete,
+            ActionTypeSelection::Run => Action::Run {
+                command: self.action_command.clone(),
+                args: self.action_args.split_whitespace().map(String::from).collect(),
+            },
+            ActionTypeSelection::Archive => Action::Archive {
+                destination: if self.action_destination.is_empty() {
+                    None
+                } else {
+                    Some(PathBuf::from(&self.action_destination))
+                },
+                delete_original: self.action_delete_original,
+            },
+            ActionTypeSelection::Nothing => Action::Nothing,
+        };
+
+        Rule {
+            name: self.name.clone(),
+            enabled: self.enabled,
+            condition,
+            action,
+            stop_processing: false,
+        }
     }
 }

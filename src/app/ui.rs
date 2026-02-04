@@ -8,7 +8,8 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Clear, List, ListItem, Paragraph, Tabs, Wrap},
 };
 
-use super::state::{AppState, LogLevel, Mode, View};
+use super::state::{ActionTypeSelection, AppState, LogLevel, Mode, RuleEditorField, SettingsItem, View};
+use crate::config::Config;
 use crate::theme::Theme;
 
 /// ASCII art logo for Tidy
@@ -54,6 +55,16 @@ pub fn render(frame: &mut Frame, state: &AppState) {
     // Render theme picker if active
     if state.mode == Mode::ThemePicker {
         render_theme_picker(frame, state);
+    }
+
+    // Render settings dialog if active
+    if state.mode == Mode::Settings {
+        render_settings_dialog(frame, state);
+    }
+
+    // Render rule editor if active
+    if matches!(state.mode, Mode::EditRule | Mode::AddRule) {
+        render_rule_editor(frame, state);
     }
 }
 
@@ -237,6 +248,12 @@ fn render_dashboard(frame: &mut Frame, state: &AppState, area: Rect) {
             Span::styled("  ", Style::default()),
             Span::styled("[l]", colors.key_hint()),
             Span::styled(" Activity log", colors.text()),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  ", Style::default()),
+            Span::styled("[s]", colors.key_hint()),
+            Span::styled(" Settings", colors.text()),
         ]),
         Line::from(""),
         Line::from(vec![
@@ -511,6 +528,8 @@ fn render_status_bar(frame: &mut Frame, state: &AppState, area: Rect) {
             Span::styled(": switch views  ", colors.text_muted()),
             Span::styled("?", colors.key_hint()),
             Span::styled(": help  ", colors.text_muted()),
+            Span::styled("s", colors.key_hint()),
+            Span::styled(": settings  ", colors.text_muted()),
             Span::styled("t", colors.key_hint()),
             Span::styled(": theme  ", colors.text_muted()),
             Span::styled("q", colors.key_hint()),
@@ -574,13 +593,21 @@ fn render_help_popup(frame: &mut Frame, state: &AppState) {
         ]),
         Line::from(vec![
             Span::styled("  e                  ", colors.key_hint()),
-            Span::styled("Edit rule (coming soon)", colors.text_dim()),
+            Span::styled("Edit selected rule", colors.text()),
+        ]),
+        Line::from(vec![
+            Span::styled("  n                  ", colors.key_hint()),
+            Span::styled("Create new rule", colors.text()),
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
             "  General",
             colors.text_primary().add_modifier(Modifier::BOLD),
         )]),
+        Line::from(vec![
+            Span::styled("  s                  ", colors.key_hint()),
+            Span::styled("Open settings", colors.text()),
+        ]),
         Line::from(vec![
             Span::styled("  t                  ", colors.key_hint()),
             Span::styled("Open theme selector", colors.text()),
@@ -685,4 +712,316 @@ fn render_theme_picker(frame: &mut Frame, state: &AppState) {
     );
 
     frame.render_widget(theme_list, popup_area);
+}
+
+fn render_settings_dialog(frame: &mut Frame, state: &AppState) {
+    let colors = state.theme.colors();
+    let area = frame.area();
+
+    // Calculate popup size - a bit wider for settings
+    let popup_width = 60u16.min(area.width.saturating_sub(4));
+    let popup_height = 18u16.min(area.height.saturating_sub(4));
+
+    let popup_area = Rect {
+        x: (area.width - popup_width) / 2,
+        y: (area.height - popup_height) / 2,
+        width: popup_width,
+        height: popup_height,
+    };
+
+    // Clear the area
+    frame.render_widget(Clear, popup_area);
+
+    let items = SettingsItem::all();
+    let list_items: Vec<ListItem> = items
+        .iter()
+        .enumerate()
+        .map(|(i, item)| {
+            let selected = i == state.settings_index;
+            let cursor = if selected { "▸" } else { " " };
+
+            let value_str = get_settings_value_display(state, *item);
+
+            let style = if selected {
+                colors.selected().add_modifier(Modifier::BOLD)
+            } else {
+                colors.text()
+            };
+
+            let value_style = if selected {
+                colors.text_secondary()
+            } else {
+                colors.text_muted()
+            };
+
+            ListItem::new(Line::from(vec![
+                Span::styled(format!(" {} ", cursor), style),
+                Span::styled(format!("{} ", item.icon()), style),
+                Span::styled(format!("{:<24}", item.label()), style),
+                Span::styled(value_str, value_style),
+            ]))
+        })
+        .collect();
+
+    let settings_list = List::new(list_items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(colors.primary))
+            .border_type(BorderType::Rounded)
+            .style(Style::default().bg(colors.bg))
+            .title(format!(
+                " ⚙ Settings ({}/{}) ",
+                state.settings_index + 1,
+                items.len()
+            ))
+            .title_style(colors.text_primary())
+            .title_bottom(Line::from(" ↑↓ navigate │ ↵/␣ toggle │ ←→ adjust │ Esc close ").centered()),
+    );
+
+    frame.render_widget(settings_list, popup_area);
+}
+
+fn get_settings_value_display(state: &AppState, item: SettingsItem) -> String {
+    match item {
+        SettingsItem::DaemonControl => {
+            if state.daemon_running {
+                "● Running".to_string()
+            } else {
+                "○ Stopped".to_string()
+            }
+        }
+        SettingsItem::ThemeSelection => state.theme.name().to_string(),
+        SettingsItem::ConfigLocation => {
+            state
+                .config_path
+                .as_ref()
+                .map(|p| {
+                    // Shorten path for display
+                    let s = p.display().to_string();
+                    if s.len() > 25 {
+                        format!("...{}", &s[s.len() - 22..])
+                    } else {
+                        s
+                    }
+                })
+                .or_else(|| {
+                    Config::default_path().map(|p| {
+                        let s = p.display().to_string();
+                        if s.len() > 25 {
+                            format!("...{}", &s[s.len() - 22..])
+                        } else {
+                            s
+                        }
+                    })
+                })
+                .unwrap_or_else(|| "Not set".to_string())
+        }
+        SettingsItem::PollingInterval => {
+            format!("{}s", state.config.general.polling_interval_secs)
+        }
+        SettingsItem::LogRetention => {
+            format!("{} entries", state.config.general.log_retention)
+        }
+        SettingsItem::StartupBehavior => {
+            if state.config.general.start_daemon_on_launch {
+                "✓ Enabled".to_string()
+            } else {
+                "✗ Disabled".to_string()
+            }
+        }
+        SettingsItem::Notifications => {
+            let status = if state.config.general.notifications_enabled {
+                "✓ Enabled"
+            } else {
+                "✗ Disabled"
+            };
+            format!("{} (coming soon)", status)
+        }
+    }
+}
+
+fn render_rule_editor(frame: &mut Frame, state: &AppState) {
+    let colors = state.theme.colors();
+    let area = frame.area();
+
+    let Some(ref editor) = state.rule_editor else {
+        return;
+    };
+
+    // Calculate popup size - larger for the editor
+    let popup_width = 70u16.min(area.width.saturating_sub(4));
+    let popup_height = 30u16.min(area.height.saturating_sub(4));
+
+    let popup_area = Rect {
+        x: (area.width - popup_width) / 2,
+        y: (area.height - popup_height) / 2,
+        width: popup_width,
+        height: popup_height,
+    };
+
+    // Clear the area
+    frame.render_widget(Clear, popup_area);
+
+    let title = if state.mode == Mode::AddRule {
+        " ➕ New Rule "
+    } else {
+        " ✏ Edit Rule "
+    };
+
+    // Build the form content
+    let mut lines: Vec<Line> = Vec::new();
+
+    // Helper to create a field line
+    let field_line = |label: &str, value: &str, field: RuleEditorField, current: RuleEditorField| -> Line {
+        let is_focused = field == current;
+        let cursor = if is_focused { "▸" } else { " " };
+        let label_style = if is_focused {
+            colors.text_primary().add_modifier(Modifier::BOLD)
+        } else {
+            colors.text_dim()
+        };
+        let value_style = if is_focused {
+            colors.text_secondary()
+        } else {
+            colors.text()
+        };
+        let input_display = if is_focused && value.is_empty() {
+            "│".to_string()
+        } else if is_focused {
+            format!("{}│", value)
+        } else if value.is_empty() {
+            "(empty)".to_string()
+        } else {
+            value.to_string()
+        };
+
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor), label_style),
+            Span::styled(format!("{:<20}", label), label_style),
+            Span::styled(input_display, value_style),
+        ])
+    };
+
+    // Helper for toggle fields
+    let toggle_line = |label: &str, value: bool, field: RuleEditorField, current: RuleEditorField| -> Line {
+        let is_focused = field == current;
+        let cursor = if is_focused { "▸" } else { " " };
+        let label_style = if is_focused {
+            colors.text_primary().add_modifier(Modifier::BOLD)
+        } else {
+            colors.text_dim()
+        };
+        let value_display = if value { "✓ Yes" } else { "✗ No" };
+        let value_style = if value {
+            colors.text_success()
+        } else {
+            colors.text_muted()
+        };
+
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor), label_style),
+            Span::styled(format!("{:<20}", label), label_style),
+            Span::styled(value_display, value_style),
+        ])
+    };
+
+    // Helper for optional bool fields (None/Some(true)/Some(false))
+    let tri_state_line = |label: &str, value: Option<bool>, field: RuleEditorField, current: RuleEditorField| -> Line {
+        let is_focused = field == current;
+        let cursor = if is_focused { "▸" } else { " " };
+        let label_style = if is_focused {
+            colors.text_primary().add_modifier(Modifier::BOLD)
+        } else {
+            colors.text_dim()
+        };
+        let (value_display, value_style) = match value {
+            None => ("─ Any", colors.text_muted()),
+            Some(true) => ("✓ Yes", colors.text_success()),
+            Some(false) => ("✗ No", colors.text_error()),
+        };
+
+        Line::from(vec![
+            Span::styled(format!(" {} ", cursor), label_style),
+            Span::styled(format!("{:<20}", label), label_style),
+            Span::styled(value_display, value_style),
+        ])
+    };
+
+    // Section: Basic Info
+    lines.push(Line::from(vec![Span::styled(
+        " ─── Basic ───",
+        colors.text_primary().add_modifier(Modifier::BOLD),
+    )]));
+    lines.push(field_line("Name", &editor.name, RuleEditorField::Name, editor.field));
+    lines.push(toggle_line("Enabled", editor.enabled, RuleEditorField::Enabled, editor.field));
+    lines.push(Line::from(""));
+
+    // Section: Conditions
+    lines.push(Line::from(vec![Span::styled(
+        " ─── Conditions ───",
+        colors.text_primary().add_modifier(Modifier::BOLD),
+    )]));
+    lines.push(field_line("Extension", &editor.extension, RuleEditorField::Extension, editor.field));
+    lines.push(field_line("Name Glob", &editor.name_glob, RuleEditorField::NameGlob, editor.field));
+    lines.push(field_line("Name Regex", &editor.name_regex, RuleEditorField::NameRegex, editor.field));
+    lines.push(field_line("Size > (bytes)", &editor.size_greater, RuleEditorField::SizeGreater, editor.field));
+    lines.push(field_line("Size < (bytes)", &editor.size_less, RuleEditorField::SizeLess, editor.field));
+    lines.push(field_line("Age > (days)", &editor.age_greater, RuleEditorField::AgeGreater, editor.field));
+    lines.push(field_line("Age < (days)", &editor.age_less, RuleEditorField::AgeLess, editor.field));
+    lines.push(tri_state_line("Is Directory", editor.is_directory, RuleEditorField::IsDirectory, editor.field));
+    lines.push(tri_state_line("Is Hidden", editor.is_hidden, RuleEditorField::IsHidden, editor.field));
+    lines.push(Line::from(""));
+
+    // Section: Action
+    lines.push(Line::from(vec![Span::styled(
+        " ─── Action ───",
+        colors.text_primary().add_modifier(Modifier::BOLD),
+    )]));
+
+    // Action type selector
+    let is_focused = editor.field == RuleEditorField::ActionType;
+    let cursor = if is_focused { "▸" } else { " " };
+    let label_style = if is_focused {
+        colors.text_primary().add_modifier(Modifier::BOLD)
+    } else {
+        colors.text_dim()
+    };
+    lines.push(Line::from(vec![
+        Span::styled(format!(" {} ", cursor), label_style),
+        Span::styled(format!("{:<20}", "Action Type"), label_style),
+        Span::styled(format!("◀ {} ▶", editor.action_type.name()), colors.text_secondary()),
+    ]));
+
+    // Show relevant action fields based on action type
+    match editor.action_type {
+        ActionTypeSelection::Move | ActionTypeSelection::Copy => {
+            lines.push(field_line("Destination", &editor.action_destination, RuleEditorField::ActionDestination, editor.field));
+        }
+        ActionTypeSelection::Rename => {
+            lines.push(field_line("Pattern", &editor.action_pattern, RuleEditorField::ActionPattern, editor.field));
+        }
+        ActionTypeSelection::Run => {
+            lines.push(field_line("Command", &editor.action_command, RuleEditorField::ActionCommand, editor.field));
+        }
+        ActionTypeSelection::Archive => {
+            lines.push(field_line("Destination", &editor.action_destination, RuleEditorField::ActionDestination, editor.field));
+        }
+        ActionTypeSelection::Trash | ActionTypeSelection::Delete | ActionTypeSelection::Nothing => {
+            // No additional fields needed
+        }
+    }
+
+    let form = Paragraph::new(lines)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(colors.primary))
+                .border_type(BorderType::Rounded)
+                .style(Style::default().bg(colors.bg))
+                .title(title)
+                .title_style(colors.text_primary())
+                .title_bottom(Line::from(" Tab: next │ Shift+Tab: prev │ Enter: save │ Esc: cancel ").centered()),
+        );
+
+    frame.render_widget(form, popup_area);
 }

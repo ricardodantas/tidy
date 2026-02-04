@@ -38,6 +38,26 @@ pub struct GeneralConfig {
     /// Seconds to wait before processing a file (debounce)
     #[serde(default = "default_debounce")]
     pub debounce_seconds: u64,
+
+    /// Polling interval in seconds for watching file changes
+    #[serde(default = "default_polling_interval")]
+    pub polling_interval_secs: u64,
+
+    /// Maximum number of log entries to retain
+    #[serde(default = "default_log_retention")]
+    pub log_retention: usize,
+
+    /// Start daemon automatically when TUI launches
+    #[serde(default)]
+    pub start_daemon_on_launch: bool,
+
+    /// Enable desktop notifications (future feature)
+    #[serde(default)]
+    pub notifications_enabled: bool,
+
+    /// Theme name
+    #[serde(default)]
+    pub theme: Option<String>,
 }
 
 impl Default for GeneralConfig {
@@ -47,6 +67,11 @@ impl Default for GeneralConfig {
             log_file: None,
             dry_run: false,
             debounce_seconds: default_debounce(),
+            polling_interval_secs: default_polling_interval(),
+            log_retention: default_log_retention(),
+            start_daemon_on_launch: false,
+            notifications_enabled: false,
+            theme: None,
         }
     }
 }
@@ -57,6 +82,14 @@ fn default_log_level() -> String {
 
 fn default_debounce() -> u64 {
     2
+}
+
+fn default_polling_interval() -> u64 {
+    5
+}
+
+fn default_log_retention() -> usize {
+    1000
 }
 
 /// Configuration for a watched folder

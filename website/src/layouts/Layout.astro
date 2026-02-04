@@ -1,0 +1,298 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'A terminal-based automated file organizer inspired by Hazel' } = Astro.props;
+const baseUrl = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href={`${baseUrl}favicon.svg`} />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={`${baseUrl}og-image.png`} />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+  </head>
+  <body>
+    <nav class="navbar">
+      <div class="nav-container">
+        <a href={baseUrl} class="nav-logo">
+          <span class="logo-icon">🧹</span>
+          <span class="logo-text">Tidy</span>
+        </a>
+        <div class="nav-links">
+          <a href={baseUrl}>Home</a>
+          <a href={`${baseUrl}docs`}>Documentation</a>
+          <a href={`${baseUrl}themes`}>Themes</a>
+          <a href="https://github.com/ricardodantas/tidy" target="_blank" rel="noopener" class="github-link">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            GitHub
+          </a>
+        </div>
+        <button class="nav-toggle" aria-label="Toggle navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+    
+    <main>
+      <slot />
+    </main>
+    
+    <footer>
+      <div class="footer-container">
+        <p>Made with ❤️ for terminal enthusiasts</p>
+        <p class="footer-links">
+          <a href="https://github.com/ricardodantas/tidy" target="_blank" rel="noopener">GitHub</a>
+          <span>•</span>
+          <a href="https://github.com/ricardodantas/tidy/issues" target="_blank" rel="noopener">Issues</a>
+          <span>•</span>
+          <a href="https://github.com/ricardodantas/tidy/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style is:global>
+  :root {
+    /* Dracula Theme Colors */
+    --bg-primary: #282a36;
+    --bg-secondary: #1e1f29;
+    --bg-tertiary: #44475a;
+    --text-primary: #f8f8f2;
+    --text-secondary: #6272a4;
+    --accent-cyan: #8be9fd;
+    --accent-green: #50fa7b;
+    --accent-orange: #ffb86c;
+    --accent-pink: #ff79c6;
+    --accent-purple: #bd93f9;
+    --accent-red: #ff5555;
+    --accent-yellow: #f1fa8c;
+    
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    
+    --max-width: 1200px;
+    --nav-height: 64px;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+    font-size: 16px;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  main {
+    flex: 1;
+  }
+  
+  a {
+    color: var(--accent-purple);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  
+  a:hover {
+    color: var(--accent-pink);
+  }
+  
+  code {
+    font-family: var(--font-mono);
+    background: var(--bg-tertiary);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  
+  pre {
+    font-family: var(--font-mono);
+    background: var(--bg-secondary);
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--bg-tertiary);
+  }
+  
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 0.875rem;
+  }
+  
+  /* Navbar */
+  .navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--nav-height);
+    background: rgba(30, 31, 41, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--bg-tertiary);
+    z-index: 1000;
+  }
+  
+  .nav-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  
+  .nav-logo:hover {
+    color: var(--text-primary);
+  }
+  
+  .logo-icon {
+    font-size: 1.5rem;
+  }
+  
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  .nav-links a {
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  
+  .nav-links a:hover {
+    color: var(--text-primary);
+  }
+  
+  .github-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+  }
+  
+  .nav-toggle span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--text-primary);
+    transition: transform 0.2s;
+  }
+  
+  /* Footer */
+  footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--bg-tertiary);
+    padding: 2rem 1.5rem;
+    text-align: center;
+  }
+  
+  .footer-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+  }
+  
+  .footer-links {
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+  }
+  
+  .footer-links a {
+    color: var(--text-secondary);
+  }
+  
+  .footer-links a:hover {
+    color: var(--accent-purple);
+  }
+  
+  .footer-links span {
+    margin: 0 0.5rem;
+  }
+  
+  /* Mobile */
+  @media (max-width: 768px) {
+    .nav-links {
+      display: none;
+      position: absolute;
+      top: var(--nav-height);
+      left: 0;
+      right: 0;
+      background: var(--bg-secondary);
+      flex-direction: column;
+      padding: 1rem;
+      gap: 1rem;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+    
+    .nav-links.active {
+      display: flex;
+    }
+    
+    .nav-toggle {
+      display: flex;
+    }
+  }
+</style>
+
+<script>
+  // Mobile nav toggle
+  document.querySelector('.nav-toggle')?.addEventListener('click', () => {
+    document.querySelector('.nav-links')?.classList.toggle('active');
+  });
+</script>
