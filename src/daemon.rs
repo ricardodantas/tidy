@@ -352,8 +352,9 @@ mod unix_daemon {
         let mut watcher = hazelnut::Watcher::new(engine)?;
 
         for watch in &config.watches {
-            info!("Watching: {}", watch.path.display());
-            watcher.watch(&watch.path, watch.recursive)?;
+            let expanded_path = hazelnut::expand_path(&watch.path);
+            info!("Watching: {}", expanded_path.display());
+            watcher.watch(&expanded_path, watch.recursive)?;
         }
 
         info!("Daemon running (PID: {})", std::process::id());
@@ -381,8 +382,9 @@ mod unix_daemon {
                             match hazelnut::Watcher::new(engine) {
                                 Ok(mut new_watcher) => {
                                     for watch in &config.watches {
-                                        if let Err(e) = new_watcher.watch(&watch.path, watch.recursive) {
-                                            tracing::error!("Failed to watch {}: {}", watch.path.display(), e);
+                                        let expanded_path = hazelnut::expand_path(&watch.path);
+                                        if let Err(e) = new_watcher.watch(&expanded_path, watch.recursive) {
+                                            tracing::error!("Failed to watch {}: {}", expanded_path.display(), e);
                                         }
                                     }
                                     watcher = new_watcher;

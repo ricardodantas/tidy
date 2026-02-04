@@ -1461,7 +1461,7 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
 /// Returns contextual help text for each watch editor field
 fn watch_field_help(field: WatchEditorField) -> &'static str {
     match field {
-        WatchEditorField::Path => "Full path to watch, e.g. /home/user/Downloads (~ not expanded)",
+        WatchEditorField::Path => "Full path to watch, e.g. ~/Downloads or /Users/you/Downloads",
         WatchEditorField::Recursive => "Space/←→ to toggle — watch subdirectories too",
         WatchEditorField::Rules => "Space: toggle │ a: select all │ c: clear (all rules apply)",
     }

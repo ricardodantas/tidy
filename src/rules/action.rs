@@ -212,15 +212,7 @@ impl Action {
 
 /// Expand ~ and environment variables in a path
 fn expand_path(path: &Path) -> PathBuf {
-    let path_str = path.to_string_lossy();
-
-    if path_str.starts_with("~/")
-        && let Some(home) = dirs::home_dir()
-    {
-        return home.join(&path_str[2..]);
-    }
-
-    path.to_path_buf()
+    crate::expand_path(path)
 }
 
 /// Expand pattern variables like {name}, {ext}, {date}
