@@ -49,6 +49,10 @@ pub enum Mode {
     AddWatch,
     /// About dialog
     About,
+    /// Update confirmation dialog
+    UpdateConfirm,
+    /// Update in progress
+    Updating,
 }
 
 /// Settings menu items
@@ -160,6 +164,12 @@ pub struct AppState {
 
     /// Update available notification
     pub update_available: Option<String>,
+
+    /// Detected package manager
+    pub package_manager: crate::PackageManager,
+
+    /// Update status message
+    pub update_status: Option<String>,
 }
 
 /// Available views in the TUI
@@ -221,6 +231,8 @@ impl AppState {
             rule_editor: None,
             watch_editor: None,
             update_available: None,
+            package_manager: crate::detect_package_manager(),
+            update_status: None,
         };
 
         // Check for updates in background

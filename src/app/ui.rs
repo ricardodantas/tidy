@@ -78,6 +78,16 @@ pub fn render(frame: &mut Frame, state: &AppState) {
     if state.mode == Mode::About {
         render_about_dialog(frame, state);
     }
+
+    // Render update confirmation dialog
+    if state.mode == Mode::UpdateConfirm {
+        render_update_confirm_dialog(frame, state);
+    }
+
+    // Render update status message
+    if let Some(ref status) = state.update_status {
+        render_update_status(frame, state, status);
+    }
 }
 
 fn render_tabs(frame: &mut Frame, state: &AppState, area: Rect) {
@@ -178,14 +188,16 @@ fn render_dashboard(frame: &mut Frame, state: &AppState, area: Rect) {
     let (logo_area, content_area) = if has_update {
         // Render update banner
         if let Some(ref latest) = state.update_available {
+            let pm = state.package_manager;
             let banner = Paragraph::new(Line::from(vec![
                 Span::styled("  ⬆️  ", Style::default().fg(colors.warning)),
                 Span::styled("Update available: ", colors.text()),
                 Span::styled(format!("v{}", latest), Style::default().fg(colors.warning).add_modifier(Modifier::BOLD)),
                 Span::styled(" (current: ", colors.text_muted()),
                 Span::styled(format!("v{})", crate::VERSION), colors.text_muted()),
-                Span::styled(" — Run: ", colors.text_muted()),
-                Span::styled("cargo install hazelnut", Style::default().fg(colors.primary)),
+                Span::styled(" — Press ", colors.text_muted()),
+                Span::styled("[U]", Style::default().fg(colors.primary).add_modifier(Modifier::BOLD)),
+                Span::styled(format!(" to update via {}", pm.name()), colors.text_muted()),
             ]))
             .alignment(Alignment::Center)
             .block(Block::default()
@@ -1592,4 +1604,95 @@ fn render_about_dialog(frame: &mut Frame, state: &AppState) {
     );
 
     frame.render_widget(paragraph, popup_area);
+}
+
+fn render_update_confirm_dialog(frame: &mut Frame, state: &AppState) {
+    let colors = state.theme.colors();
+    let area = frame.area();
+
+    // Center popup
+    let popup_width = 50;
+    let popup_height = 9;
+    let popup_area = Rect {
+        x: area.width.saturating_sub(popup_width) / 2,
+        y: area.height.saturating_sub(popup_height) / 2,
+        width: popup_width.min(area.width),
+        height: popup_height.min(area.height),
+    };
+
+    // Clear area behind popup
+    frame.render_widget(ratatui::widgets::Clear, popup_area);
+
+    let latest = state.update_available.as_deref().unwrap_or("unknown");
+    let pm = state.package_manager;
+
+    let lines = vec![
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Update to ", colors.text()),
+            Span::styled(format!("v{}", latest), Style::default().fg(colors.warning).add_modifier(Modifier::BOLD)),
+            Span::styled("?", colors.text()),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Command: ", colors.text_muted()),
+            Span::styled(pm.update_command(), Style::default().fg(colors.primary)),
+        ]),
+        Line::from(""),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled(" [Y] ", Style::default().fg(colors.success).add_modifier(Modifier::BOLD)),
+            Span::raw("Yes, update"),
+            Span::raw("    "),
+            Span::styled(" [N/Esc] ", colors.text_muted()),
+            Span::raw("Cancel"),
+        ]),
+    ];
+
+    let paragraph = Paragraph::new(lines)
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(Style::default().fg(colors.warning))
+                .style(Style::default().bg(colors.bg))
+                .title(" ⬆️ Update Hazelnut ")
+                .title_style(
+                    Style::default()
+                        .fg(colors.warning)
+                        .add_modifier(Modifier::BOLD),
+                ),
+        );
+
+    frame.render_widget(paragraph, popup_area);
+}
+
+fn render_update_status(frame: &mut Frame, state: &AppState, status: &str) {
+    let colors = state.theme.colors();
+    let area = frame.area();
+
+    // Bottom banner
+    let banner_height = 3;
+    let banner_area = Rect {
+        x: 0,
+        y: area.height.saturating_sub(banner_height),
+        width: area.width,
+        height: banner_height,
+    };
+
+    let is_success = status.contains("complete");
+    let border_color = if is_success { colors.success } else { colors.warning };
+
+    let paragraph = Paragraph::new(Line::from(status))
+        .alignment(Alignment::Center)
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .border_style(Style::default().fg(border_color))
+                .style(Style::default().bg(colors.bg)),
+        );
+
+    frame.render_widget(paragraph, banner_area);
 }

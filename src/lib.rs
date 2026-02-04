@@ -112,3 +112,60 @@ pub fn expand_path(path: &std::path::Path) -> std::path::PathBuf {
 
     path.to_path_buf()
 }
+
+/// Detected package manager for installation
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PackageManager {
+    Cargo,
+    Homebrew,
+}
+
+impl PackageManager {
+    /// Get display name
+    pub fn name(&self) -> &'static str {
+        match self {
+            PackageManager::Cargo => "cargo",
+            PackageManager::Homebrew => "brew",
+        }
+    }
+
+    /// Get the update command
+    pub fn update_command(&self) -> &'static str {
+        match self {
+            PackageManager::Cargo => "cargo install hazelnut",
+            PackageManager::Homebrew => "brew upgrade hazelnut",
+        }
+    }
+}
+
+/// Detect how hazelnut was installed
+pub fn detect_package_manager() -> PackageManager {
+    // Check if installed via Homebrew (macOS)
+    if let Ok(output) = std::process::Command::new("brew")
+        .args(["list", "hazelnut"])
+        .output()
+        && output.status.success()
+    {
+        return PackageManager::Homebrew;
+    }
+
+    // Default to cargo
+    PackageManager::Cargo
+}
+
+/// Run the update command and return the result
+pub fn run_update(pm: PackageManager) -> Result<(), String> {
+    let (cmd, args): (&str, Vec<&str>) = match pm {
+        PackageManager::Cargo => ("cargo", vec!["install", "hazelnut"]),
+        PackageManager::Homebrew => ("brew", vec!["upgrade", "hazelnut"]),
+    };
+
+    match std::process::Command::new(cmd)
+        .args(&args)
+        .status()
+    {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(format!("Update failed with status: {}", status)),
+        Err(e) => Err(format!("Failed to run {}: {}", cmd, e)),
+    }
+}

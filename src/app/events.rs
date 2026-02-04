@@ -39,6 +39,14 @@ pub fn handle_key(state: &mut AppState, key: KeyEvent) {
             handle_about_key(state, key);
             return;
         }
+        Mode::UpdateConfirm => {
+            handle_update_confirm_key(state, key);
+            return;
+        }
+        Mode::Updating => {
+            // No input during update
+            return;
+        }
         Mode::Normal => {}
     }
 
@@ -168,6 +176,11 @@ fn handle_dashboard_key(state: &mut AppState, key: KeyEvent) {
         KeyCode::Char('r') => state.view = View::Rules,
         KeyCode::Char('w') => state.view = View::Watches,
         KeyCode::Char('l') => state.view = View::Log,
+        KeyCode::Char('u') | KeyCode::Char('U') => {
+            if state.update_available.is_some() {
+                state.mode = Mode::UpdateConfirm;
+            }
+        }
         _ => {}
     }
 }
@@ -387,6 +400,32 @@ fn handle_about_key(state: &mut AppState, key: KeyEvent) {
         KeyCode::Char('g') | KeyCode::Char('G') => {
             // Open GitHub repository
             let _ = open::that("https://github.com/ricardodantas/hazelnut");
+        }
+        _ => {}
+    }
+}
+
+fn handle_update_confirm_key(state: &mut AppState, key: KeyEvent) {
+    match key.code {
+        KeyCode::Esc | KeyCode::Char('n') | KeyCode::Char('N') => {
+            state.mode = Mode::Normal;
+        }
+        KeyCode::Enter | KeyCode::Char('y') | KeyCode::Char('Y') => {
+            // Start the update
+            state.mode = Mode::Updating;
+            state.update_status = Some("Updating...".to_string());
+            
+            // Run update (this blocks, but it's intentional for now)
+            match crate::run_update(state.package_manager) {
+                Ok(()) => {
+                    state.update_status = Some("Update complete! Please restart hazelnut.".to_string());
+                    state.update_available = None;
+                }
+                Err(e) => {
+                    state.update_status = Some(format!("Update failed: {}", e));
+                }
+            }
+            state.mode = Mode::Normal;
         }
         _ => {}
     }
