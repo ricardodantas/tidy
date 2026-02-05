@@ -193,6 +193,11 @@ Press `Ctrl+t` in the TUI to cycle through themes:
 | ? | Show help |
 | q / Ctrl+c | Quit |
 
+## The website's URL
+
+https://hazelnut.ricardodantas.me
+
+
 ## Binary Locations
 
 After `cargo build --release`:
