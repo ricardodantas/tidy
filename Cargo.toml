@@ -1,6 +1,6 @@
 [package]
 name = "hazelnut"
-version = "0.2.36"
+version = "0.2.37"
 edition = "2024"
 rust-version = "1.93"
 authors = ["Ricardo Dantas"]
