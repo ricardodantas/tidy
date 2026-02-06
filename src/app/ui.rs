@@ -943,7 +943,7 @@ fn get_settings_value_display(state: &AppState, item: SettingsItem) -> String {
             } else {
                 "✗ Disabled"
             };
-            format!("{} (coming soon)", status)
+            status.to_string()
         }
     }
 }

@@ -550,7 +550,7 @@ fn handle_settings_action(state: &mut AppState) {
             } else {
                 "disabled"
             };
-            state.set_status(format!("Notifications: {} (coming soon)", status));
+            state.set_status(format!("Notifications: {}", status));
             save_config(state);
         }
     }
