@@ -124,7 +124,7 @@ pub fn handle_key(state: &mut AppState, key: KeyEvent) {
             // Set picker index to current theme
             state.theme_picker_index = Theme::all()
                 .iter()
-                .position(|t| *t == state.theme)
+                .position(|t| *t == state.theme.inner())
                 .unwrap_or(0);
             state.mode = Mode::ThemePicker;
             return;
@@ -163,7 +163,7 @@ fn handle_theme_picker_key(state: &mut AppState, key: KeyEvent) {
         }
         KeyCode::Enter => {
             // Apply selected theme
-            let selected_theme = themes[state.theme_picker_index];
+            let selected_theme = Theme::from(themes[state.theme_picker_index]);
             state.theme = selected_theme;
             state.mode = Mode::Normal;
             state.set_status(format!("Theme set to {}", selected_theme.name()));
@@ -172,20 +172,20 @@ fn handle_theme_picker_key(state: &mut AppState, key: KeyEvent) {
         KeyCode::Down | KeyCode::Char('j') => {
             state.theme_picker_index = (state.theme_picker_index + 1) % len;
             // Preview theme
-            state.theme = themes[state.theme_picker_index];
+            state.theme = Theme::from(themes[state.theme_picker_index]);
         }
         KeyCode::Up | KeyCode::Char('k') => {
             state.theme_picker_index = state.theme_picker_index.checked_sub(1).unwrap_or(len - 1);
             // Preview theme
-            state.theme = themes[state.theme_picker_index];
+            state.theme = Theme::from(themes[state.theme_picker_index]);
         }
         KeyCode::Home | KeyCode::Char('g') => {
             state.theme_picker_index = 0;
-            state.theme = themes[state.theme_picker_index];
+            state.theme = Theme::from(themes[state.theme_picker_index]);
         }
         KeyCode::End | KeyCode::Char('G') => {
             state.theme_picker_index = len - 1;
-            state.theme = themes[state.theme_picker_index];
+            state.theme = Theme::from(themes[state.theme_picker_index]);
         }
         _ => {}
     }
@@ -487,7 +487,7 @@ fn handle_settings_action(state: &mut AppState) {
             // Switch to theme picker
             state.theme_picker_index = Theme::all()
                 .iter()
-                .position(|t| *t == state.theme)
+                .position(|t| *t == state.theme.inner())
                 .unwrap_or(0);
             state.mode = Mode::ThemePicker;
         }

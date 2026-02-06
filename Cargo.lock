@@ -738,6 +738,7 @@ dependencies = [
  "open",
  "predicates",
  "ratatui",
+ "ratatui-themes",
  "regex",
  "serde",
  "serde_json",
@@ -1638,6 +1639,16 @@ checksum = "0f76fe0bd0ed4295f0321b1676732e2454024c15a35d01904ddb315afd3d545c"
 dependencies = [
  "ratatui-core",
  "termwiz",
+]
+
+[[package]]
+name = "ratatui-themes"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "efbc5e717ef2eb2350d1fe21ee39e066861d22d7d6f5db9f491fb29b7ed51ad0"
+dependencies = [
+ "ratatui",
+ "serde",
 ]
 
 [[package]]
