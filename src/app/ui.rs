@@ -1347,20 +1347,24 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
     // Calculate cursor position based on field type and cursor offset
     // Field layout: border (1) + " ▸ " (4) + "Label:       " (13) = 18 chars before value
     let prefix_len = 18u16;
-    // Row numbers account for: border (1) + content line index
-    // Content: 0=empty, 1=header, 2=Name, 3=Enabled, 4=empty, 5=header, 6=Extension, etc.
+    // Row = line_index + 1 (for border)
+    // Line indices:
+    //  0: empty, 1: header, 2: Name, 3: Enabled, 4: empty, 5: header
+    //  6: Extension, 7: NameGlob, 8: NameRegex, 9: SizeGreater, 10: SizeLess
+    // 11: AgeGreater, 12: AgeLess, 13: IsDirectory, 14: IsHidden, 15: empty
+    // 16: header, 17: ActionType, 18: ActionDestination, 19: ActionPattern, 20: ActionCommand
     let (field_row, cursor_offset) = match editor.field {
-        RuleEditorField::Name => (3, editor.cursor_name),           // line index 2 + 1 border
-        RuleEditorField::Extension => (7, editor.cursor_extension), // line index 6 + 1 border
-        RuleEditorField::NameGlob => (8, editor.cursor_name_glob),
-        RuleEditorField::NameRegex => (9, editor.cursor_name_regex),
-        RuleEditorField::SizeGreater => (10, editor.cursor_size_greater),
-        RuleEditorField::SizeLess => (11, editor.cursor_size_less),
-        RuleEditorField::AgeGreater => (12, editor.cursor_age_greater),
-        RuleEditorField::AgeLess => (13, editor.cursor_age_less),
-        RuleEditorField::ActionDestination => (18, editor.cursor_action_destination),
-        RuleEditorField::ActionPattern => (19, editor.cursor_action_pattern),
-        RuleEditorField::ActionCommand => (20, editor.cursor_action_command),
+        RuleEditorField::Name => (3, editor.cursor_name),                // line 2 + 1
+        RuleEditorField::Extension => (7, editor.cursor_extension),      // line 6 + 1
+        RuleEditorField::NameGlob => (8, editor.cursor_name_glob),       // line 7 + 1
+        RuleEditorField::NameRegex => (9, editor.cursor_name_regex),     // line 8 + 1
+        RuleEditorField::SizeGreater => (10, editor.cursor_size_greater), // line 9 + 1
+        RuleEditorField::SizeLess => (11, editor.cursor_size_less),      // line 10 + 1
+        RuleEditorField::AgeGreater => (12, editor.cursor_age_greater),  // line 11 + 1
+        RuleEditorField::AgeLess => (13, editor.cursor_age_less),        // line 12 + 1
+        RuleEditorField::ActionDestination => (19, editor.cursor_action_destination), // line 18 + 1
+        RuleEditorField::ActionPattern => (20, editor.cursor_action_pattern),         // line 19 + 1
+        RuleEditorField::ActionCommand => (21, editor.cursor_action_command),         // line 20 + 1
         // Non-text fields don't need cursor
         _ => (0, 0),
     };
