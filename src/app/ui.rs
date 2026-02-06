@@ -1345,11 +1345,13 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
 
     // Set cursor position for text fields
     // Calculate cursor position based on field type and cursor offset
-    // Field layout: " ▸ " (4) + "Label:       " (13) = 17 chars before value
-    let prefix_len = 17u16;
+    // Field layout: border (1) + " ▸ " (4) + "Label:       " (13) = 18 chars before value
+    let prefix_len = 18u16;
+    // Row numbers account for: border (1) + content line index
+    // Content: 0=empty, 1=header, 2=Name, 3=Enabled, 4=empty, 5=header, 6=Extension, etc.
     let (field_row, cursor_offset) = match editor.field {
-        RuleEditorField::Name => (3, editor.cursor_name),
-        RuleEditorField::Extension => (7, editor.cursor_extension),
+        RuleEditorField::Name => (3, editor.cursor_name),           // line index 2 + 1 border
+        RuleEditorField::Extension => (7, editor.cursor_extension), // line index 6 + 1 border
         RuleEditorField::NameGlob => (8, editor.cursor_name_glob),
         RuleEditorField::NameRegex => (9, editor.cursor_name_regex),
         RuleEditorField::SizeGreater => (10, editor.cursor_size_greater),
@@ -1557,9 +1559,11 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
     // Set cursor position for the Path field
     if editor.field == WatchEditorField::Path {
         // Field layout: " ▸ " (4) + "Path:      " (11) = 15 chars before value
-        let prefix_len = 15u16;
+        // Add 1 for border
+        let prefix_len = 16u16;
         let cursor_x = popup_area.x + prefix_len + editor.cursor_path as u16;
-        let cursor_y = popup_area.y + 3; // Path is on row 3
+        // Row: border (1) + empty line (1) + path line (1) = row 2 from popup top
+        let cursor_y = popup_area.y + 2;
         if cursor_x < popup_area.x + popup_area.width - 1 {
             frame.set_cursor_position((cursor_x, cursor_y));
         }
