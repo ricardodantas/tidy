@@ -59,16 +59,12 @@ enum Commands {
 /// Show daemon status
 #[cfg(unix)]
 fn show_daemon_status() {
-    let pid_file = dirs::runtime_dir()
-        .or_else(dirs::state_dir)
-        .unwrap_or_else(|| PathBuf::from("/tmp"))
-        .join("hazelnutd.pid");
+    let state_dir = dirs::home_dir()
+        .map(|h| h.join(".local").join("state").join("hazelnut"))
+        .unwrap_or_else(|| PathBuf::from("/tmp"));
 
-    let log_file = dirs::state_dir()
-        .or_else(dirs::data_local_dir)
-        .unwrap_or_else(|| PathBuf::from("/tmp"))
-        .join("hazelnut")
-        .join("hazelnutd.log");
+    let pid_file = state_dir.join("hazelnutd.pid");
+    let log_file = state_dir.join("hazelnutd.log");
 
     let (running, pid) = if let Ok(pid_str) = std::fs::read_to_string(&pid_file) {
         if let Ok(pid) = pid_str.trim().parse::<i32>() {
