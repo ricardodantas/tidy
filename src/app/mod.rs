@@ -51,7 +51,35 @@ pub async fn run(config_path: Option<PathBuf>) -> Result<()> {
     terminal.clear()?;
 
     // Create app state
-    let mut state = AppState::new(config, theme);
+    let mut state = AppState::new(config.clone(), theme);
+
+    // Start daemon on launch if configured (Unix only)
+    #[cfg(unix)]
+    if config.general.start_daemon_on_launch && !state.daemon_running {
+        use std::process::{Command, Stdio};
+
+        // Find hazelnutd binary
+        let daemon_cmd = std::env::current_exe()
+            .ok()
+            .and_then(|p| p.parent().map(|dir| dir.join("hazelnutd")))
+            .filter(|p| p.exists())
+            .unwrap_or_else(|| std::path::PathBuf::from("hazelnutd"));
+
+        match Command::new(&daemon_cmd)
+            .args(["start"])
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+        {
+            Ok(status) if status.success() => {
+                state.daemon_running = true;
+                state.status_message = Some("Daemon started automatically".to_string());
+            }
+            Ok(_) | Err(_) => {
+                // Silently fail - daemon might already be running
+            }
+        }
+    }
 
     // Spawn background update check
     let (tx, rx) = mpsc::channel();

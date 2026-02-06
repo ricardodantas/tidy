@@ -308,11 +308,14 @@ impl AppState {
             // Clear existing entries and load from file
             self.log_entries.clear();
 
+            // Use log_retention setting to limit entries (default 500)
+            let max_entries = self.config.general.log_retention;
+
             // Parse log lines (format: [timestamp] LEVEL message)
             for line in content
                 .lines()
                 .rev()
-                .take(500)
+                .take(max_entries)
                 .collect::<Vec<_>>()
                 .into_iter()
                 .rev()
