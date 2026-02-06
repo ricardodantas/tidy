@@ -1017,7 +1017,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             Span::styled(&editor.name, field_style(RuleEditorField::Name)),
             Span::styled(
                 if editor.field == RuleEditorField::Name {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1057,7 +1057,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::Extension {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1080,7 +1080,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::NameGlob {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1103,7 +1103,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::NameRegex {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1126,7 +1126,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::SizeGreater {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1150,7 +1150,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::SizeLess {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1174,7 +1174,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::AgeGreater {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1197,7 +1197,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::AgeLess {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1262,7 +1262,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::ActionDestination {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1285,7 +1285,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::ActionPattern {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1308,7 +1308,7 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == RuleEditorField::ActionCommand {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1342,6 +1342,36 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
         .wrap(Wrap { trim: false });
 
     frame.render_widget(editor_widget, popup_area);
+
+    // Set cursor position for text fields
+    // Calculate cursor position based on field type and cursor offset
+    // Field layout: " ▸ " (4) + "Label:       " (13) = 17 chars before value
+    let prefix_len = 17u16;
+    let (field_row, cursor_offset) = match editor.field {
+        RuleEditorField::Name => (3, editor.cursor_name),
+        RuleEditorField::Extension => (7, editor.cursor_extension),
+        RuleEditorField::NameGlob => (8, editor.cursor_name_glob),
+        RuleEditorField::NameRegex => (9, editor.cursor_name_regex),
+        RuleEditorField::SizeGreater => (10, editor.cursor_size_greater),
+        RuleEditorField::SizeLess => (11, editor.cursor_size_less),
+        RuleEditorField::AgeGreater => (12, editor.cursor_age_greater),
+        RuleEditorField::AgeLess => (13, editor.cursor_age_less),
+        RuleEditorField::ActionDestination => (18, editor.cursor_action_destination),
+        RuleEditorField::ActionPattern => (19, editor.cursor_action_pattern),
+        RuleEditorField::ActionCommand => (20, editor.cursor_action_command),
+        // Non-text fields don't need cursor
+        _ => (0, 0),
+    };
+
+    if field_row > 0 {
+        let cursor_x = popup_area.x + prefix_len + cursor_offset as u16;
+        let cursor_y = popup_area.y + field_row;
+        if cursor_x < popup_area.x + popup_area.width - 1
+            && cursor_y < popup_area.y + popup_area.height - 1
+        {
+            frame.set_cursor_position((cursor_x, cursor_y));
+        }
+    }
 }
 
 /// Returns contextual help text for each rule editor field
@@ -1434,7 +1464,7 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled(
                 if editor.field == WatchEditorField::Path {
-                    "▏"
+                    ""
                 } else {
                     ""
                 },
@@ -1523,6 +1553,17 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
         .wrap(Wrap { trim: false });
 
     frame.render_widget(editor_widget, popup_area);
+
+    // Set cursor position for the Path field
+    if editor.field == WatchEditorField::Path {
+        // Field layout: " ▸ " (4) + "Path:      " (11) = 15 chars before value
+        let prefix_len = 15u16;
+        let cursor_x = popup_area.x + prefix_len + editor.cursor_path as u16;
+        let cursor_y = popup_area.y + 3; // Path is on row 3
+        if cursor_x < popup_area.x + popup_area.width - 1 {
+            frame.set_cursor_position((cursor_x, cursor_y));
+        }
+    }
 }
 
 /// Returns contextual help text for each watch editor field
