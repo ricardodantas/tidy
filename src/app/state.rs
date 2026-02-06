@@ -814,13 +814,44 @@ impl RuleEditorState {
             action_delete_original,
             // Set cursor positions to end of each field
             cursor_name: rule.name.len(),
-            cursor_extension: rule.condition.extension.as_ref().map(|s| s.len()).unwrap_or(0),
-            cursor_name_glob: rule.condition.name_matches.as_ref().map(|s| s.len()).unwrap_or(0),
-            cursor_name_regex: rule.condition.name_regex.as_ref().map(|s| s.len()).unwrap_or(0),
-            cursor_size_greater: rule.condition.size_greater_than.map(|v| v.to_string().len()).unwrap_or(0),
-            cursor_size_less: rule.condition.size_less_than.map(|v| v.to_string().len()).unwrap_or(0),
-            cursor_age_greater: rule.condition.age_days_greater_than.map(|v| v.to_string().len()).unwrap_or(0),
-            cursor_age_less: rule.condition.age_days_less_than.map(|v| v.to_string().len()).unwrap_or(0),
+            cursor_extension: rule
+                .condition
+                .extension
+                .as_ref()
+                .map(|s| s.len())
+                .unwrap_or(0),
+            cursor_name_glob: rule
+                .condition
+                .name_matches
+                .as_ref()
+                .map(|s| s.len())
+                .unwrap_or(0),
+            cursor_name_regex: rule
+                .condition
+                .name_regex
+                .as_ref()
+                .map(|s| s.len())
+                .unwrap_or(0),
+            cursor_size_greater: rule
+                .condition
+                .size_greater_than
+                .map(|v| v.to_string().len())
+                .unwrap_or(0),
+            cursor_size_less: rule
+                .condition
+                .size_less_than
+                .map(|v| v.to_string().len())
+                .unwrap_or(0),
+            cursor_age_greater: rule
+                .condition
+                .age_days_greater_than
+                .map(|v| v.to_string().len())
+                .unwrap_or(0),
+            cursor_age_less: rule
+                .condition
+                .age_days_less_than
+                .map(|v| v.to_string().len())
+                .unwrap_or(0),
             cursor_action_destination: action_destination.len(),
             cursor_action_pattern: action_pattern.len(),
             cursor_action_command: action_command.len(),

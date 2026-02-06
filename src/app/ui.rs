@@ -1015,14 +1015,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
             ),
             Span::styled("Name:        ", label_style(RuleEditorField::Name)),
             Span::styled(&editor.name, field_style(RuleEditorField::Name)),
-            Span::styled(
-                if editor.field == RuleEditorField::Name {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1055,14 +1047,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::Extension),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::Extension {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1077,14 +1061,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                     &editor.name_glob
                 },
                 field_style(RuleEditorField::NameGlob),
-            ),
-            Span::styled(
-                if editor.field == RuleEditorField::NameGlob {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
             ),
         ]),
         Line::from(vec![
@@ -1101,14 +1077,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::NameRegex),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::NameRegex {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1123,14 +1091,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                     &editor.size_greater
                 },
                 field_style(RuleEditorField::SizeGreater),
-            ),
-            Span::styled(
-                if editor.field == RuleEditorField::SizeGreater {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
             ),
             Span::styled(" bytes", colors.text_dim()),
         ]),
@@ -1148,14 +1108,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::SizeLess),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::SizeLess {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
             Span::styled(" bytes", colors.text_dim()),
         ]),
         Line::from(vec![
@@ -1172,14 +1124,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::AgeGreater),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::AgeGreater {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1194,14 +1138,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                     &editor.age_less
                 },
                 field_style(RuleEditorField::AgeLess),
-            ),
-            Span::styled(
-                if editor.field == RuleEditorField::AgeLess {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
             ),
         ]),
         Line::from(vec![
@@ -1260,14 +1196,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::ActionDestination),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::ActionDestination {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1283,14 +1211,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                 },
                 field_style(RuleEditorField::ActionPattern),
             ),
-            Span::styled(
-                if editor.field == RuleEditorField::ActionPattern {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
-            ),
         ]),
         Line::from(vec![
             Span::styled(
@@ -1305,14 +1225,6 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
                     &editor.action_command
                 },
                 field_style(RuleEditorField::ActionCommand),
-            ),
-            Span::styled(
-                if editor.field == RuleEditorField::ActionCommand {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
             ),
         ]),
         Line::from(""),
@@ -1354,17 +1266,17 @@ fn render_rule_editor(frame: &mut Frame, state: &AppState) {
     // 11: AgeGreater, 12: AgeLess, 13: IsDirectory, 14: IsHidden, 15: empty
     // 16: header, 17: ActionType, 18: ActionDestination, 19: ActionPattern, 20: ActionCommand
     let (field_row, cursor_offset) = match editor.field {
-        RuleEditorField::Name => (3, editor.cursor_name),                // line 2 + 1
-        RuleEditorField::Extension => (7, editor.cursor_extension),      // line 6 + 1
-        RuleEditorField::NameGlob => (8, editor.cursor_name_glob),       // line 7 + 1
-        RuleEditorField::NameRegex => (9, editor.cursor_name_regex),     // line 8 + 1
+        RuleEditorField::Name => (3, editor.cursor_name), // line 2 + 1
+        RuleEditorField::Extension => (7, editor.cursor_extension), // line 6 + 1
+        RuleEditorField::NameGlob => (8, editor.cursor_name_glob), // line 7 + 1
+        RuleEditorField::NameRegex => (9, editor.cursor_name_regex), // line 8 + 1
         RuleEditorField::SizeGreater => (10, editor.cursor_size_greater), // line 9 + 1
-        RuleEditorField::SizeLess => (11, editor.cursor_size_less),      // line 10 + 1
-        RuleEditorField::AgeGreater => (12, editor.cursor_age_greater),  // line 11 + 1
-        RuleEditorField::AgeLess => (13, editor.cursor_age_less),        // line 12 + 1
+        RuleEditorField::SizeLess => (11, editor.cursor_size_less), // line 10 + 1
+        RuleEditorField::AgeGreater => (12, editor.cursor_age_greater), // line 11 + 1
+        RuleEditorField::AgeLess => (13, editor.cursor_age_less), // line 12 + 1
         RuleEditorField::ActionDestination => (19, editor.cursor_action_destination), // line 18 + 1
-        RuleEditorField::ActionPattern => (20, editor.cursor_action_pattern),         // line 19 + 1
-        RuleEditorField::ActionCommand => (21, editor.cursor_action_command),         // line 20 + 1
+        RuleEditorField::ActionPattern => (20, editor.cursor_action_pattern), // line 19 + 1
+        RuleEditorField::ActionCommand => (21, editor.cursor_action_command), // line 20 + 1
         // Non-text fields don't need cursor
         _ => (0, 0),
     };
@@ -1467,14 +1379,6 @@ fn render_watch_editor(frame: &mut Frame, state: &AppState) {
                     &editor.path
                 },
                 field_style(WatchEditorField::Path),
-            ),
-            Span::styled(
-                if editor.field == WatchEditorField::Path {
-                    ""
-                } else {
-                    ""
-                },
-                colors.text_primary(),
             ),
         ]),
         Line::from(vec![

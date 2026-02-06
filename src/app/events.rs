@@ -732,13 +732,29 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
                 editor.enabled = !editor.enabled;
             }
         }
-        RuleEditorField::Extension => handle_text_input(&mut editor.extension, &mut editor.cursor_extension, key),
-        RuleEditorField::NameGlob => handle_text_input(&mut editor.name_glob, &mut editor.cursor_name_glob, key),
-        RuleEditorField::NameRegex => handle_text_input(&mut editor.name_regex, &mut editor.cursor_name_regex, key),
-        RuleEditorField::SizeGreater => handle_numeric_input(&mut editor.size_greater, &mut editor.cursor_size_greater, key),
-        RuleEditorField::SizeLess => handle_numeric_input(&mut editor.size_less, &mut editor.cursor_size_less, key),
-        RuleEditorField::AgeGreater => handle_numeric_input(&mut editor.age_greater, &mut editor.cursor_age_greater, key),
-        RuleEditorField::AgeLess => handle_numeric_input(&mut editor.age_less, &mut editor.cursor_age_less, key),
+        RuleEditorField::Extension => {
+            handle_text_input(&mut editor.extension, &mut editor.cursor_extension, key)
+        }
+        RuleEditorField::NameGlob => {
+            handle_text_input(&mut editor.name_glob, &mut editor.cursor_name_glob, key)
+        }
+        RuleEditorField::NameRegex => {
+            handle_text_input(&mut editor.name_regex, &mut editor.cursor_name_regex, key)
+        }
+        RuleEditorField::SizeGreater => handle_numeric_input(
+            &mut editor.size_greater,
+            &mut editor.cursor_size_greater,
+            key,
+        ),
+        RuleEditorField::SizeLess => {
+            handle_numeric_input(&mut editor.size_less, &mut editor.cursor_size_less, key)
+        }
+        RuleEditorField::AgeGreater => {
+            handle_numeric_input(&mut editor.age_greater, &mut editor.cursor_age_greater, key)
+        }
+        RuleEditorField::AgeLess => {
+            handle_numeric_input(&mut editor.age_less, &mut editor.cursor_age_less, key)
+        }
         RuleEditorField::IsDirectory => {
             if matches!(
                 key.code,
@@ -772,11 +788,21 @@ fn handle_rule_editor_field_input(editor: &mut RuleEditorState, key: KeyEvent) {
             }
             _ => {}
         },
-        RuleEditorField::ActionDestination => {
-            handle_text_input(&mut editor.action_destination, &mut editor.cursor_action_destination, key)
-        }
-        RuleEditorField::ActionPattern => handle_text_input(&mut editor.action_pattern, &mut editor.cursor_action_pattern, key),
-        RuleEditorField::ActionCommand => handle_text_input(&mut editor.action_command, &mut editor.cursor_action_command, key),
+        RuleEditorField::ActionDestination => handle_text_input(
+            &mut editor.action_destination,
+            &mut editor.cursor_action_destination,
+            key,
+        ),
+        RuleEditorField::ActionPattern => handle_text_input(
+            &mut editor.action_pattern,
+            &mut editor.cursor_action_pattern,
+            key,
+        ),
+        RuleEditorField::ActionCommand => handle_text_input(
+            &mut editor.action_command,
+            &mut editor.cursor_action_command,
+            key,
+        ),
     }
 }
 
