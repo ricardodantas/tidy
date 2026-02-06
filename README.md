@@ -732,18 +732,20 @@ hazelnutd run        # Run in foreground (for debugging)
 $ hazelnutd status
 🌰 Hazelnut daemon is running
    PID: 12345
-   PID file: /run/user/1000/hazelnutd.pid
+   PID file: ~/.local/state/hazelnut/hazelnutd.pid
    Log file: ~/.local/state/hazelnut/hazelnutd.log
    Uptime: 2h 15m 30s
 ```
 
 #### File Locations
 
+All files use consistent paths across Linux and macOS:
+
 | File | Path | Purpose |
 |------|------|---------|
-| PID file | `$XDG_RUNTIME_DIR/hazelnutd.pid` | Tracks running daemon |
-| Log file | `~/.local/state/hazelnut/hazelnutd.log` | Daemon activity log |
 | Config | `~/.config/hazelnut/config.toml` | Rules and settings |
+| PID file | `~/.local/state/hazelnut/hazelnutd.pid` | Tracks running daemon |
+| Log file | `~/.local/state/hazelnut/hazelnutd.log` | Daemon activity log |
 
 #### Typical Workflow
 

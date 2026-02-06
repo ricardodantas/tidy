@@ -781,11 +781,13 @@ The `hazelnutd` daemon runs in the background and processes file events 24/7.
 
 ### File Locations
 
-| File | Default Path | Purpose |
-|------|--------------|---------|
-| PID file | `$XDG_RUNTIME_DIR/hazelnutd.pid` | Tracks running daemon process |
-| Log file | `~/.local/state/hazelnut/hazelnutd.log` | Daemon activity and error log |
+All state and config files use consistent paths across all platforms (Linux, macOS):
+
+| File | Path | Purpose |
+|------|------|---------|
 | Config | `~/.config/hazelnut/config.toml` | Rules and watch configuration |
+| PID file | `~/.local/state/hazelnut/hazelnutd.pid` | Tracks running daemon process |
+| Log file | `~/.local/state/hazelnut/hazelnutd.log` | Daemon activity and error log |
 
 ### Usage Examples
 
@@ -800,7 +802,7 @@ hazelnutd start
 hazelnutd status
 # Output: 🌰 Hazelnut daemon is running
 #            PID: 12345
-#            PID file: /run/user/1000/hazelnutd.pid
+#            PID file: ~/.local/state/hazelnut/hazelnutd.pid
 #            Log file: ~/.local/state/hazelnut/hazelnutd.log
 #            Uptime: 2h 15m 30s
 

@@ -241,12 +241,13 @@ destination = "/home/youruser/Documents/PDFs"</code></pre>
           <pre><code>{`$ hazelnutd status
 🌰 Hazelnut daemon is running
    PID: 12345
-   PID file: /run/user/1000/hazelnutd.pid
+   PID file: ~/.local/state/hazelnut/hazelnutd.pid
    Log file: ~/.local/state/hazelnut/hazelnutd.log
    Uptime: 2h 15m 30s`}</code></pre>
         </div>
 
         <h3>File Locations</h3>
+        <p class="note">All files use consistent paths across Linux and macOS.</p>
         <div class="table-wrapper">
           <table>
             <thead>
@@ -258,19 +259,19 @@ destination = "/home/youruser/Documents/PDFs"</code></pre>
             </thead>
             <tbody>
               <tr>
+                <td>Config</td>
+                <td><code>~/.config/hazelnut/config.toml</code></td>
+                <td>Rules and watch configuration</td>
+              </tr>
+              <tr>
                 <td>PID file</td>
-                <td><code>$XDG_RUNTIME_DIR/hazelnutd.pid</code></td>
+                <td><code>~/.local/state/hazelnut/hazelnutd.pid</code></td>
                 <td>Tracks running daemon process</td>
               </tr>
               <tr>
                 <td>Log file</td>
                 <td><code>~/.local/state/hazelnut/hazelnutd.log</code></td>
                 <td>Daemon activity log</td>
-              </tr>
-              <tr>
-                <td>Config</td>
-                <td><code>~/.config/hazelnut/config.toml</code></td>
-                <td>Rules and watch configuration</td>
               </tr>
             </tbody>
           </table>
