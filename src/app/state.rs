@@ -229,8 +229,9 @@ impl AppState {
             pending_update: false,
         };
 
-        // Check for updates in background
-        let update_check = crate::check_for_updates_timeout(std::time::Duration::from_secs(2));
+        // Check for updates in background using crates.io API (no rate limits)
+        let update_check =
+            crate::check_for_updates_crates_io_timeout(std::time::Duration::from_secs(2));
         if let crate::VersionCheck::UpdateAvailable { latest, .. } = update_check {
             state.update_available = Some(latest);
         }

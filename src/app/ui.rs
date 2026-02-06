@@ -1723,19 +1723,27 @@ fn render_updating_overlay(frame: &mut Frame, state: &AppState) {
     let colors = state.theme.colors();
     let area = frame.area();
 
-    // Dim the background
+    // Dim the background with semi-transparent overlay
     let overlay = Block::default().style(Style::default().bg(Color::Black));
     frame.render_widget(overlay, area);
 
-    // Centered modal
-    let popup_width = 40;
-    let popup_height = 5;
+    // Centered modal - use percentage-based sizing like Feedo
+    let popup_width = 40u16;
+    let popup_height = 5u16;
+
+    // Calculate centered position
+    let x = area.width.saturating_sub(popup_width) / 2;
+    let y = area.height.saturating_sub(popup_height) / 2;
+
     let popup_area = Rect {
-        x: area.width.saturating_sub(popup_width) / 2,
-        y: area.height.saturating_sub(popup_height) / 2,
-        width: popup_width.min(area.width),
-        height: popup_height.min(area.height),
+        x,
+        y,
+        width: popup_width.min(area.width.saturating_sub(x)),
+        height: popup_height.min(area.height.saturating_sub(y)),
     };
+
+    // Clear the popup area first to ensure clean rendering
+    frame.render_widget(Clear, popup_area);
 
     let text = vec![
         Line::from(""),
